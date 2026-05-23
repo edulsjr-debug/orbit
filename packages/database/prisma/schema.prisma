@@ -1,0 +1,144 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Usuário ─────────────────────────────────────────────────────────────────
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  password  String
+  phone     String?
+  pushSub   String?  // JSON do subscription de push
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  events        Event[]
+  tasks         Task[]
+  projects      Project[]
+  notifications Notification[]
+}
+
+// ─── Compromisso ─────────────────────────────────────────────────────────────
+model Event {
+  id              String   @id @default(cuid())
+  title           String
+  description     String?
+  location        String?
+  startAt         DateTime
+  durationMinutes Int      @default(60)
+  category        String   @default("trabalho")
+  recurring       Boolean  @default(false)
+  notifPush       Boolean  @default(true)
+  notifEmail      Boolean  @default(false)
+  notifWhatsapp   Boolean  @default(false)
+  notifAdvance    Int      @default(30)
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  history EventHistory[]
+  jobs    NotificationJob[]
+}
+
+model EventHistory {
+  id        String   @id @default(cuid())
+  eventId   String
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  field     String
+  oldValue  String?
+  newValue  String?
+  userId    String
+  createdAt DateTime @default(now())
+}
+
+// ─── Tarefa ──────────────────────────────────────────────────────────────────
+model Task {
+  id          String    @id @default(cuid())
+  title       String
+  description String?
+  dueAt       DateTime?
+  priority    String    @default("medium")
+  status      String    @default("pending")
+  notifPush   Boolean   @default(true)
+  notifEmail  Boolean   @default(false)
+  userId      String
+  projectId   String?
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project     Project?  @relation(fields: [projectId], references: [id])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  history TaskHistory[]
+}
+
+model TaskHistory {
+  id        String   @id @default(cuid())
+  taskId    String
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  field     String
+  oldValue  String?
+  newValue  String?
+  userId    String
+  createdAt DateTime @default(now())
+}
+
+// ─── Projeto ─────────────────────────────────────────────────────────────────
+model Project {
+  id          String    @id @default(cuid())
+  name        String
+  description String?
+  color       String    @default("#6366f1")
+  emoji       String    @default("📁")
+  deadline    DateTime?
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  tasks   Task[]
+  history ProjectHistory[]
+}
+
+model ProjectHistory {
+  id        String   @id @default(cuid())
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  field     String
+  oldValue  String?
+  newValue  String?
+  userId    String
+  createdAt DateTime @default(now())
+}
+
+// ─── Notificação ─────────────────────────────────────────────────────────────
+model Notification {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title      String
+  body       String
+  channel    String
+  read       Boolean  @default(false)
+  entityType String?
+  entityId   String?
+  createdAt  DateTime @default(now())
+}
+
+// ─── Fila de notificações agendadas ─────────────────────────────────────────
+model NotificationJob {
+  id         String    @id @default(cuid())
+  eventId    String
+  event      Event     @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  channel    String
+  scheduledAt DateTime
+  sentAt     DateTime?
+  status     String    @default("pending")
+  createdAt  DateTime  @default(now())
+}
