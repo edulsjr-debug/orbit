@@ -8,6 +8,7 @@ import { eventRoutes } from './routes/events'
 import { taskRoutes } from './routes/tasks'
 import { projectRoutes } from './routes/projects'
 import { notificationRoutes } from './routes/notifications'
+import { pushRoutes } from './routes/push'
 
 const app = Fastify({ logger: { level: 'info' } })
 
@@ -39,6 +40,7 @@ async function bootstrap() {
   await app.register(taskRoutes, { prefix: '/tasks' })
   await app.register(projectRoutes, { prefix: '/projects' })
   await app.register(notificationRoutes, { prefix: '/notifications' })
+  await app.register(pushRoutes, { prefix: '/push' })
 
   app.get('/health', async () => ({ status: 'ok', ts: new Date().toISOString() }))
 
