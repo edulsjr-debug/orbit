@@ -10,6 +10,14 @@ const projectSchema = z.object({
   deadline: z.string().datetime().optional(),
 })
 
+const projectHistoryFields = [
+  'name',
+  'description',
+  'color',
+  'emoji',
+  'deadline',
+] as const
+
 function userId(req: any): string {
   return (req.user as { sub: string }).sub
 }
@@ -56,33 +64,55 @@ export async function projectRoutes(app: FastifyInstance) {
     return { data: project }
   })
 
-  app.patch('/:id', auth, async (req, reply) => {
+  app.put('/:id', auth, async (req, reply) => {
     const { id } = req.params as { id: string }
     const uid = userId(req)
     const original = await prisma.project.findFirst({ where: { id, userId: uid } })
     if (!original) return reply.code(404).send({ error: 'Não encontrado' })
 
     const body = projectSchema.partial().parse(req.body)
-    const updated = await prisma.project.update({ where: { id }, data: body })
+    const historyData = projectHistoryFields
+      .filter(
+        (field) => body[field] !== undefined && String(original[field]) !== String(body[field])
+      )
+      .map((field) => ({
+        projectId: id,
+        field,
+        oldValue: String(original[field] ?? ''),
+        newValue: String(body[field] ?? ''),
+        userId: uid,
+      }))
 
-    const changes = Object.keys(body).filter(
-      (k) =>
-        body[k as keyof typeof body] !== undefined &&
-        String(original[k as keyof typeof original]) !== String(body[k as keyof typeof body])
-    )
-    if (changes.length > 0) {
-      await prisma.projectHistory.createMany({
-        data: changes.map((field) => ({
-          projectId: id,
-          field,
-          oldValue: String(original[field as keyof typeof original] ?? ''),
-          newValue: String(body[field as keyof typeof body] ?? ''),
-          userId: uid,
-        })),
-      })
+    let updatedProject
+
+    if (historyData.length > 0) {
+      const [, , result] = await prisma.$transaction([
+        prisma.project.update({ where: { id }, data: body }),
+        prisma.projectHistory.createMany({ data: historyData }),
+        prisma.project.findUniqueOrThrow({
+          where: { id },
+          include: {
+            tasks: true,
+            history: { orderBy: { createdAt: 'desc' } },
+          },
+        }),
+      ])
+      updatedProject = result
+    } else {
+      const [, result] = await prisma.$transaction([
+        prisma.project.update({ where: { id }, data: body }),
+        prisma.project.findUniqueOrThrow({
+          where: { id },
+          include: {
+            tasks: true,
+            history: { orderBy: { createdAt: 'desc' } },
+          },
+        }),
+      ])
+      updatedProject = result
     }
 
-    return { data: updated }
+    return { data: updatedProject }
   })
 
   app.delete('/:id', auth, async (req, reply) => {
