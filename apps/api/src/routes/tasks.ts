@@ -45,7 +45,7 @@ export async function taskRoutes(app: FastifyInstance) {
       },
       orderBy: [{ status: 'asc' }, { dueAt: 'asc' }, { priority: 'desc' }],
     })
-    return { data: tasks.map((t) => ({ ...t, hasHistory: t.history.length > 0 })) }
+    return { data: tasks.map((t: any) => ({ ...t, hasHistory: t.history.length > 0 })) }
   })
 
   app.get('/:id', auth, async (req, reply) => {
