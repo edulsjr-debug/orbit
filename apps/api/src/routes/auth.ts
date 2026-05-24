@@ -4,7 +4,7 @@ import { prisma } from '@orbit/database'
 import { createHash } from 'crypto'
 
 const hashPassword = (pw: string) =>
-  createHash('sha256').update(pw + process.env.SALT ?? 'orbit-salt').digest('hex')
+  createHash('sha256').update(pw + (process.env.SALT ?? 'orbit-salt')).digest('hex')
 
 export async function authRoutes(app: FastifyInstance) {
   // Registro
