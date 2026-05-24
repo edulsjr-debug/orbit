@@ -13,6 +13,17 @@ const taskSchema = z.object({
   notifEmail: z.boolean().default(false),
 })
 
+const taskHistoryFields = [
+  'title',
+  'description',
+  'dueAt',
+  'priority',
+  'status',
+  'projectId',
+  'notifPush',
+  'notifEmail',
+] as const
+
 function userId(req: any): string {
   return (req.user as { sub: string }).sub
 }
@@ -54,32 +65,55 @@ export async function taskRoutes(app: FastifyInstance) {
     return { data: task }
   })
 
-  app.patch('/:id', auth, async (req, reply) => {
+  app.put('/:id', auth, async (req, reply) => {
     const { id } = req.params as { id: string }
     const uid = userId(req)
     const original = await prisma.task.findFirst({ where: { id, userId: uid } })
     if (!original) return reply.code(404).send({ error: 'Não encontrado' })
 
     const body = taskSchema.partial().parse(req.body)
-    const updated = await prisma.task.update({ where: { id }, data: body })
+    const historyData = taskHistoryFields
+      .filter(
+        (field) => body[field] !== undefined && String(original[field]) !== String(body[field])
+      )
+      .map((field) => ({
+        taskId: id,
+        field,
+        oldValue: String(original[field] ?? ''),
+        newValue: String(body[field] ?? ''),
+        userId: uid,
+      }))
 
-    const changes = Object.keys(body).filter(
-      (k) => body[k as keyof typeof body] !== undefined &&
-             String(original[k as keyof typeof original]) !== String(body[k as keyof typeof body])
-    )
-    if (changes.length > 0) {
-      await prisma.taskHistory.createMany({
-        data: changes.map((field) => ({
-          taskId: id,
-          field,
-          oldValue: String(original[field as keyof typeof original] ?? ''),
-          newValue: String(body[field as keyof typeof body] ?? ''),
-          userId: uid,
-        })),
-      })
+    let updatedTask
+
+    if (historyData.length > 0) {
+      const [, , result] = await prisma.$transaction([
+        prisma.task.update({ where: { id }, data: body }),
+        prisma.taskHistory.createMany({ data: historyData }),
+        prisma.task.findUniqueOrThrow({
+          where: { id },
+          include: {
+            project: { select: { id: true, name: true, color: true } },
+            history: { orderBy: { createdAt: 'desc' } },
+          },
+        }),
+      ])
+      updatedTask = result
+    } else {
+      const [, result] = await prisma.$transaction([
+        prisma.task.update({ where: { id }, data: body }),
+        prisma.task.findUniqueOrThrow({
+          where: { id },
+          include: {
+            project: { select: { id: true, name: true, color: true } },
+            history: { orderBy: { createdAt: 'desc' } },
+          },
+        }),
+      ])
+      updatedTask = result
     }
 
-    return { data: updated }
+    return { data: updatedTask }
   })
 
   app.delete('/:id', auth, async (req, reply) => {
