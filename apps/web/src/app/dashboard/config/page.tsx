@@ -28,6 +28,29 @@ export default function ConfigPage() {
   const [profileMsg, setProfileMsg] = useState<{ ok: boolean; text: string } | null>(null)
   const [pwMsg, setPwMsg] = useState<{ ok: boolean; text: string } | null>(null)
 
+  // Server status
+  const [serverStatus, setServerStatus] = useState<'checking' | 'online' | 'slow' | 'offline'>('checking')
+  const [serverMs, setServerMs] = useState<number | null>(null)
+
+  useEffect(() => {
+    async function checkServer() {
+      setServerStatus('checking')
+      const t0 = Date.now()
+      try {
+        const res = await fetch('/api/health', { cache: 'no-store' })
+        const ms = Date.now() - t0
+        setServerMs(ms)
+        setServerStatus(res.ok ? (ms > 3000 ? 'slow' : 'online') : 'offline')
+      } catch {
+        setServerStatus('offline')
+        setServerMs(null)
+      }
+    }
+    checkServer()
+    const iv = setInterval(checkServer, 30_000)
+    return () => clearInterval(iv)
+  }, [])
+
   // Push state
   const [pushStatus, setPushStatus] = useState<'loading' | 'unsupported' | 'denied' | 'active' | 'inactive'>('loading')
   const [pushMsg, setPushMsg] = useState<{ ok: boolean; text: string } | null>(null)
@@ -248,6 +271,26 @@ export default function ConfigPage() {
         <div style={S.infoRow}>
           <span style={{ color: '#64748b', fontSize: 13 }}>Versão do Orbit</span>
           <span style={{ fontWeight: 600, fontSize: 13 }}>1.0.0</span>
+        </div>
+        <div style={{ ...S.infoRow, borderBottom: 'none', alignItems: 'center' }}>
+          <span style={{ color: '#64748b', fontSize: 13 }}>Servidor</span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600 }}>
+            <span style={{
+              width: 9, height: 9, borderRadius: '50%', flexShrink: 0,
+              background: serverStatus === 'online' ? '#22c55e'
+                : serverStatus === 'slow' ? '#f59e0b'
+                : serverStatus === 'offline' ? '#ef4444'
+                : '#94a3b8',
+              boxShadow: serverStatus === 'online' ? '0 0 6px #22c55e'
+                : serverStatus === 'slow' ? '0 0 6px #f59e0b'
+                : serverStatus === 'offline' ? '0 0 6px #ef4444'
+                : 'none',
+            }} />
+            {serverStatus === 'checking' && 'Verificando…'}
+            {serverStatus === 'online' && `Online${serverMs ? ` · ${serverMs}ms` : ''}`}
+            {serverStatus === 'slow' && `Acordando… · ${serverMs}ms`}
+            {serverStatus === 'offline' && 'Offline'}
+          </span>
         </div>
       </div>
     </div>
