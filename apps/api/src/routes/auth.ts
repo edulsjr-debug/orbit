@@ -58,13 +58,18 @@ export async function authRoutes(app: FastifyInstance) {
   })
 
   // Perfil
-  app.get('/me', { onRequest: [(app as any).authenticate] }, async (req) => {
-    const { sub } = req.user as { sub: string }
-    const user = await prisma.user.findUniqueOrThrow({
-      where: { id: sub },
+  app.get('/me', { onRequest: [(app as any).authenticate] }, async (request, reply) => {
+    const userId = (request.user as { sub: string }).sub
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
       select: { id: true, name: true, email: true, phone: true, createdAt: true },
     })
-    return { data: user }
+
+    if (!user) {
+      return reply.code(404).send({ error: 'Usuário não encontrado' })
+    }
+
+    return user
   })
 
   // Logout
@@ -74,19 +79,28 @@ export async function authRoutes(app: FastifyInstance) {
   })
 
   // Atualizar perfil
-  app.patch('/me', { onRequest: [(app as any).authenticate] }, async (req, reply) => {
-    const { sub } = req.user as { sub: string }
+  app.put('/me', { onRequest: [(app as any).authenticate] }, async (request, reply) => {
+    const userId = (request.user as { sub: string }).sub
     const body = z.object({
       name: z.string().min(2).optional(),
       phone: z.string().optional(),
-      pushSub: z.string().optional(),
-    }).parse(req.body)
+    }).parse(request.body)
 
-    const user = await prisma.user.update({
-      where: { id: sub },
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true },
+    })
+
+    if (!user) {
+      return reply.code(404).send({ error: 'Usuário não encontrado' })
+    }
+
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
       data: body,
       select: { id: true, name: true, email: true, phone: true, createdAt: true },
     })
-    return { data: user }
+
+    return updatedUser
   })
 }
