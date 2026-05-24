@@ -9,6 +9,7 @@ import { taskRoutes } from './routes/tasks'
 import { projectRoutes } from './routes/projects'
 import { notificationRoutes } from './routes/notifications'
 import { pushRoutes } from './routes/push'
+import { startNotificationWorker } from './jobs/notificationWorker'
 
 const app = Fastify({ logger: { level: 'info' } })
 
@@ -47,6 +48,8 @@ async function bootstrap() {
   const port = Number(process.env.PORT ?? 3001)
   await app.listen({ port, host: '0.0.0.0' })
   console.log(`API rodando em http://localhost:${port}`)
+
+  startNotificationWorker()
 }
 
 bootstrap().catch((err) => {
