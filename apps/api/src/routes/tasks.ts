@@ -65,7 +65,7 @@ export async function taskRoutes(app: FastifyInstance) {
     return { data: task }
   })
 
-  app.put('/:id', auth, async (req, reply) => {
+  const updateTask = async (req: any, reply: any) => {
     const { id } = req.params as { id: string }
     const uid = userId(req)
     const original = await prisma.task.findFirst({ where: { id, userId: uid } })
@@ -114,7 +114,10 @@ export async function taskRoutes(app: FastifyInstance) {
     }
 
     return { data: updatedTask }
-  })
+  }
+
+  app.put('/:id', auth, updateTask)
+  app.patch('/:id', auth, updateTask)
 
   app.delete('/:id', auth, async (req, reply) => {
     const { id } = req.params as { id: string }
