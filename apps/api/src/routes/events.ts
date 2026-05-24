@@ -76,8 +76,7 @@ export async function eventRoutes(app: FastifyInstance) {
     return { data: event }
   })
 
-  // Editar
-  app.put('/:id', auth, async (req, reply) => {
+  const updateEvent = async (req: any, reply: any) => {
     const { id } = req.params as { id: string }
     const uid = userId(req)
     const original = await prisma.event.findFirst({ where: { id, userId: uid } })
@@ -123,7 +122,11 @@ export async function eventRoutes(app: FastifyInstance) {
     await scheduleEventNotifications(updatedEvent)
 
     return { data: updatedEvent }
-  })
+  }
+
+  // Editar
+  app.put('/:id', auth, updateEvent)
+  app.patch('/:id', auth, updateEvent)
 
   // Remover
   app.delete('/:id', auth, async (req, reply) => {
