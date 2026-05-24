@@ -1,7 +1,7 @@
 'use client'
 
 import { usePathname, useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import useSWR, { mutate } from 'swr'
 import { api } from '@/lib/api'
 import { PushSetup } from '@/components/PushSetup'
@@ -27,6 +27,20 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const router = useRouter()
   const [bellOpen, setBellOpen] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
+
+  // Fecha sidebar ao navegar no mobile
+  useEffect(() => {
+    if (isMobile) setSidebarOpen(false)
+  }, [pathname, isMobile])
 
   const { data: user } = useSWR<User>('/auth/me', fetcher)
   const { data: countData } = useSWR('/notifications/unread-count', fetcher, { refreshInterval: 30000 })
@@ -53,51 +67,91 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     mutate('/notifications')
   }
 
+  const showSidebar = isMobile ? sidebarOpen : true
+
   return (
     <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
       <PushSetup />
 
+      {/* Overlay mobile */}
+      {isMobile && sidebarOpen && (
+        <div
+          onClick={() => setSidebarOpen(false)}
+          style={{
+            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
+            zIndex: 40,
+          }}
+        />
+      )}
+
       {/* Sidebar */}
-      <aside style={S.sidebar}>
-        <div style={S.logo}>
-          <div style={S.logoIcon}>🌀</div>
-          <div>
-            <div style={S.logoName}>Orbit</div>
-            <div style={S.logoSub}>Agenda inteligente</div>
-          </div>
-        </div>
-
-        <nav style={{ padding: '14px 12px', flex: 1 }}>
-          {NAV.map((item) => (
-            <div
-              key={item.href}
-              onClick={() => router.push(item.href)}
-              style={{ ...S.navItem, ...(pathname === item.href ? S.navActive : {}) }}
-            >
-              <span style={{ fontSize: 15, width: 20, textAlign: 'center' }}>{item.icon}</span>
-              {item.label}
+      {showSidebar && (
+        <aside style={{
+          ...S.sidebar,
+          ...(isMobile ? {
+            position: 'fixed', top: 0, left: 0, bottom: 0,
+            zIndex: 50,
+            transform: sidebarOpen ? 'translateX(0)' : 'translateX(-100%)',
+            transition: 'transform 0.25s ease',
+          } : {}),
+        }}>
+          <div style={S.logo}>
+            <div style={S.logoIcon}>🌀</div>
+            <div style={{ flex: 1 }}>
+              <div style={S.logoName}>Orbit</div>
+              <div style={S.logoSub}>Agenda inteligente</div>
             </div>
-          ))}
-        </nav>
-
-        <div style={S.userRow} onClick={logout} title="Clique para sair">
-          <div style={S.avatar}>{initial}</div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ color: '#e2e8f0', fontSize: 13, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{firstName}</div>
-            <div style={{ color: '#475569', fontSize: 11 }}>Sair ↩</div>
+            {isMobile && (
+              <button
+                onClick={() => setSidebarOpen(false)}
+                style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: 20, cursor: 'pointer', padding: 4 }}
+              >
+                ✕
+              </button>
+            )}
           </div>
-        </div>
 
-        {/* Versão */}
-        <div style={S.versionBar}>
-          v{VERSION} · <span style={{ fontFamily: 'monospace' }}>{COMMIT}</span>
-        </div>
-      </aside>
+          <nav style={{ padding: '14px 12px', flex: 1 }}>
+            {NAV.map((item) => (
+              <div
+                key={item.href}
+                onClick={() => router.push(item.href)}
+                style={{ ...S.navItem, ...(pathname === item.href ? S.navActive : {}) }}
+              >
+                <span style={{ fontSize: 15, width: 20, textAlign: 'center' }}>{item.icon}</span>
+                {item.label}
+              </div>
+            ))}
+          </nav>
+
+          <div style={S.userRow} onClick={logout} title="Clique para sair">
+            <div style={S.avatar}>{initial}</div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ color: '#e2e8f0', fontSize: 13, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{firstName}</div>
+              <div style={{ color: '#475569', fontSize: 11 }}>Sair ↩</div>
+            </div>
+          </div>
+
+          <div style={S.versionBar}>
+            v{VERSION} · <span style={{ fontFamily: 'monospace' }}>{COMMIT}</span>
+          </div>
+        </aside>
+      )}
 
       {/* Main */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         {/* Topbar */}
         <header style={S.topbar}>
+          {/* Hamburguer mobile */}
+          {isMobile && (
+            <button
+              onClick={() => setSidebarOpen(true)}
+              style={{ background: 'none', border: 'none', fontSize: 22, cursor: 'pointer', padding: '0 4px', color: '#374151', marginRight: 8 }}
+            >
+              ☰
+            </button>
+          )}
+
           <div style={{ flex: 1 }} />
 
           {/* Bell */}
@@ -110,7 +164,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </button>
 
             {bellOpen && (
-              <div style={S.bellDrop}>
+              <div style={{ ...S.bellDrop, width: isMobile ? 'calc(100vw - 32px)' : 320, right: isMobile ? -60 : 0 }}>
                 <div style={{ padding: '12px 16px', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontWeight: 700, fontSize: 14 }}>Notificações</span>
                   {unreadCount > 0 && (
@@ -146,7 +200,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           {/* User chip */}
           <div style={S.chip} onClick={() => router.push('/dashboard/config')}>
             <div style={S.avatar}>{initial}</div>
-            <span style={{ fontSize: 13, fontWeight: 500, color: '#374151' }}>{firstName}</span>
+            {!isMobile && <span style={{ fontSize: 13, fontWeight: 500, color: '#374151' }}>{firstName}</span>}
           </div>
         </header>
 
@@ -170,7 +224,7 @@ const S: Record<string, React.CSSProperties> = {
   topbar: { height: 60, background: '#fff', borderBottom: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', padding: '0 24px', gap: 12, flexShrink: 0 },
   bellBtn: { position: 'relative', width: 38, height: 38, background: '#f8fafc', border: '1.5px solid #e2e8f0', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 17 },
   bellBadge: { position: 'absolute', top: -5, right: -5, background: '#ef4444', color: '#fff', fontSize: 10, fontWeight: 700, minWidth: 18, height: 18, borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid #fff', padding: '0 3px' },
-  bellDrop: { position: 'absolute', top: 46, right: 0, width: 320, background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 14, boxShadow: '0 16px 32px rgba(0,0,0,.12)', zIndex: 100 },
+  bellDrop: { position: 'absolute', top: 46, right: 0, background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 14, boxShadow: '0 16px 32px rgba(0,0,0,.12)', zIndex: 100 },
   chip: { display: 'flex', alignItems: 'center', gap: 8, padding: '4px 12px 4px 4px', background: '#f8fafc', border: '1.5px solid #e2e8f0', borderRadius: 30, cursor: 'pointer' },
   content: { flex: 1, overflowY: 'auto', padding: 24 },
 }
