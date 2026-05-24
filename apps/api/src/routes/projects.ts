@@ -64,7 +64,7 @@ export async function projectRoutes(app: FastifyInstance) {
     return { data: project }
   })
 
-  app.put('/:id', auth, async (req, reply) => {
+  const updateProject = async (req: any, reply: any) => {
     const { id } = req.params as { id: string }
     const uid = userId(req)
     const original = await prisma.project.findFirst({ where: { id, userId: uid } })
@@ -113,7 +113,10 @@ export async function projectRoutes(app: FastifyInstance) {
     }
 
     return { data: updatedProject }
-  })
+  }
+
+  app.put('/:id', auth, updateProject)
+  app.patch('/:id', auth, updateProject)
 
   app.delete('/:id', auth, async (req, reply) => {
     const { id } = req.params as { id: string }
