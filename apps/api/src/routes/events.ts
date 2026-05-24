@@ -17,28 +17,20 @@ const eventSchema = z.object({
   notifAdvance: z.number().int().default(30),
 })
 
+const eventHistoryFields = [
+  'title',
+  'location',
+  'startAt',
+  'durationMinutes',
+  'category',
+  'notifPush',
+  'notifEmail',
+  'notifWhatsapp',
+  'notifAdvance',
+] as const
+
 function userId(req: any): string {
   return (req.user as { sub: string }).sub
-}
-
-function trackHistory(
-  eventId: string,
-  uid: string,
-  original: Record<string, any>,
-  updated: Record<string, any>
-) {
-  const changes = Object.keys(updated).filter(
-    (k) => updated[k] !== undefined && String(original[k]) !== String(updated[k])
-  )
-  return prisma.eventHistory.createMany({
-    data: changes.map((field) => ({
-      eventId,
-      field,
-      oldValue: String(original[field] ?? ''),
-      newValue: String(updated[field] ?? ''),
-      userId: uid,
-    })),
-  })
 }
 
 export async function eventRoutes(app: FastifyInstance) {
@@ -46,7 +38,7 @@ export async function eventRoutes(app: FastifyInstance) {
 
   // Listar
   app.get('/', auth, async (req) => {
-    const { from, to } = (req.query as any)
+    const { from, to } = req.query as any
     const events = await prisma.event.findMany({
       where: {
         userId: userId(req),
@@ -85,20 +77,42 @@ export async function eventRoutes(app: FastifyInstance) {
   })
 
   // Editar
-  app.patch('/:id', auth, async (req, reply) => {
+  app.put('/:id', auth, async (req, reply) => {
     const { id } = req.params as { id: string }
     const uid = userId(req)
     const original = await prisma.event.findFirst({ where: { id, userId: uid } })
     if (!original) return reply.code(404).send({ error: 'Não encontrado' })
 
     const body = eventSchema.partial().parse(req.body)
-    const updated = await prisma.event.update({ where: { id }, data: body })
+    const historyData = eventHistoryFields
+      .filter(
+        (field) => body[field] !== undefined && String(original[field]) !== String(body[field])
+      )
+      .map((field) => ({
+        eventId: id,
+        field,
+        oldValue: String(original[field] ?? ''),
+        newValue: String(body[field] ?? ''),
+        userId: uid,
+      }))
 
-    await trackHistory(id, uid, original as any, body as any)
+    const operations = [
+      prisma.event.update({ where: { id }, data: body }),
+      ...(historyData.length > 0
+        ? [prisma.eventHistory.createMany({ data: historyData })]
+        : []),
+      prisma.event.findUniqueOrThrow({
+        where: { id },
+        include: { history: { orderBy: { createdAt: 'desc' } } },
+      }),
+    ]
+
+    const [, , updatedEvent] = await prisma.$transaction(operations as any)
+
     await cancelEventNotifications(id)
-    await scheduleEventNotifications(updated)
+    await scheduleEventNotifications(updatedEvent)
 
-    return { data: updated }
+    return { data: updatedEvent }
   })
 
   // Remover
