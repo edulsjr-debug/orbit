@@ -50,7 +50,7 @@ export async function eventRoutes(app: FastifyInstance) {
       orderBy: { startAt: 'asc' },
     })
     return {
-      data: events.map((e) => ({ ...e, hasHistory: e.history.length > 0 })),
+      data: events.map((e: any) => ({ ...e, hasHistory: e.history.length > 0 })),
     }
   })
 
