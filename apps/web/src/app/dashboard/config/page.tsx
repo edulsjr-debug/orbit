@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import useSWR, { mutate } from 'swr'
 import { api } from '@/lib/api'
+import { subscribePush, unsubscribePush } from '@/lib/push'
 
 type User = {
   id: string
@@ -27,12 +28,33 @@ export default function ConfigPage() {
   const [profileMsg, setProfileMsg] = useState<{ ok: boolean; text: string } | null>(null)
   const [pwMsg, setPwMsg] = useState<{ ok: boolean; text: string } | null>(null)
 
+  // Push state
+  const [pushStatus, setPushStatus] = useState<'loading' | 'unsupported' | 'denied' | 'active' | 'inactive'>('loading')
+  const [pushMsg, setPushMsg] = useState<{ ok: boolean; text: string } | null>(null)
+  const [pushBusy, setPushBusy] = useState(false)
+
   useEffect(() => {
     if (user) {
       setName(user.name ?? '')
       setPhone(user.phone ?? '')
     }
   }, [user])
+
+  useEffect(() => {
+    async function checkPush() {
+      if (typeof window === 'undefined' || !('serviceWorker' in navigator) || !('PushManager' in window)) {
+        setPushStatus('unsupported')
+        return
+      }
+      const perm = Notification.permission
+      if (perm === 'denied') { setPushStatus('denied'); return }
+
+      const reg = await navigator.serviceWorker.ready
+      const sub = await reg.pushManager.getSubscription()
+      setPushStatus(sub ? 'active' : 'inactive')
+    }
+    checkPush()
+  }, [])
 
   async function saveProfile() {
     setSavingProfile(true)
@@ -49,27 +71,71 @@ export default function ConfigPage() {
   }
 
   async function savePassword() {
-    if (pwNew !== pwConfirm) {
-      setPwMsg({ ok: false, text: 'As senhas não coincidem' })
-      return
-    }
-    if (pwNew.length < 6) {
-      setPwMsg({ ok: false, text: 'A nova senha deve ter pelo menos 6 caracteres' })
-      return
-    }
+    if (pwNew !== pwConfirm) { setPwMsg({ ok: false, text: 'As senhas não coincidem' }); return }
+    if (pwNew.length < 6) { setPwMsg({ ok: false, text: 'A nova senha deve ter pelo menos 6 caracteres' }); return }
     setSavingPw(true)
     setPwMsg(null)
     try {
       await api.patch('/auth/me', { password: pwNew, currentPassword: pwCurrent })
-      setPwCurrent('')
-      setPwNew('')
-      setPwConfirm('')
+      setPwCurrent(''); setPwNew(''); setPwConfirm('')
       setPwMsg({ ok: true, text: '✓ Senha alterada com sucesso' })
     } catch (e: any) {
       setPwMsg({ ok: false, text: e.message })
     } finally {
       setSavingPw(false)
     }
+  }
+
+  async function enablePush() {
+    setPushBusy(true)
+    setPushMsg(null)
+    try {
+      const vapidRes = await fetch('/api/push/vapid-key', { credentials: 'include' })
+      const { publicKey } = await vapidRes.json()
+      if (!publicKey) throw new Error('Chave VAPID não disponível')
+
+      const subscription = await subscribePush(publicKey)
+      if (!subscription) throw new Error('Permissão negada ou navegador não suporta push')
+
+      await fetch('/api/push/subscribe', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(subscription),
+      })
+
+      setPushStatus('active')
+      setPushMsg({ ok: true, text: '✓ Notificações ativadas com sucesso!' })
+
+      // Envia push de teste para confirmar
+      await fetch('/api/notifications/push-test', { method: 'POST', credentials: 'include' })
+    } catch (e: any) {
+      setPushMsg({ ok: false, text: e.message ?? 'Erro ao ativar notificações' })
+    } finally {
+      setPushBusy(false)
+    }
+  }
+
+  async function disablePush() {
+    setPushBusy(true)
+    try {
+      await unsubscribePush()
+      await fetch('/api/push/subscribe', { method: 'DELETE', credentials: 'include' })
+      setPushStatus('inactive')
+      setPushMsg({ ok: true, text: 'Notificações desativadas' })
+    } catch (e: any) {
+      setPushMsg({ ok: false, text: e.message })
+    } finally {
+      setPushBusy(false)
+    }
+  }
+
+  const pushLabels: Record<string, string> = {
+    loading: 'Verificando...',
+    unsupported: 'Não suportado neste navegador',
+    denied: 'Bloqueado — libere nas configurações do navegador',
+    active: '🟢 Notificações ativas',
+    inactive: '⚪ Notificações desativadas',
   }
 
   return (
@@ -82,7 +148,6 @@ export default function ConfigPage() {
       {/* Perfil */}
       <div style={S.section}>
         <div style={S.sectionTitle}>👤 Perfil</div>
-
         <div style={S.avatarRow}>
           <div style={S.avatar}>{user?.name?.[0]?.toUpperCase() ?? '?'}</div>
           <div>
@@ -90,7 +155,6 @@ export default function ConfigPage() {
             <div style={{ fontSize: 13, color: '#64748b' }}>{user?.email}</div>
           </div>
         </div>
-
         <Field label="Nome">
           <input style={S.input} value={name} onChange={(e) => setName(e.target.value)} />
         </Field>
@@ -100,22 +164,59 @@ export default function ConfigPage() {
         <Field label="E-mail">
           <input style={{ ...S.input, background: '#f8fafc', color: '#94a3b8' }} value={user?.email ?? ''} disabled />
         </Field>
-
         {profileMsg && (
           <div style={{ ...S.msg, color: profileMsg.ok ? '#16a34a' : '#dc2626', background: profileMsg.ok ? '#f0fdf4' : '#fef2f2' }}>
             {profileMsg.text}
           </div>
         )}
-
         <button style={S.btn} onClick={saveProfile} disabled={savingProfile || !name}>
           {savingProfile ? 'Salvando...' : 'Salvar perfil'}
         </button>
       </div>
 
+      {/* Notificações Push */}
+      <div style={S.section}>
+        <div style={S.sectionTitle}>🔔 Notificações push</div>
+        <div style={{ fontSize: 13, color: '#64748b', marginBottom: 14 }}>
+          Receba alertas de compromissos diretamente no navegador.
+        </div>
+        <div style={{ fontSize: 13, marginBottom: 16, color: '#374151' }}>
+          Status: <strong>{pushLabels[pushStatus]}</strong>
+        </div>
+        {pushMsg && (
+          <div style={{ ...S.msg, color: pushMsg.ok ? '#16a34a' : '#dc2626', background: pushMsg.ok ? '#f0fdf4' : '#fef2f2', marginBottom: 14 }}>
+            {pushMsg.text}
+          </div>
+        )}
+        {pushStatus === 'inactive' && (
+          <button style={S.btn} onClick={enablePush} disabled={pushBusy}>
+            {pushBusy ? 'Ativando...' : 'Ativar notificações'}
+          </button>
+        )}
+        {pushStatus === 'active' && (
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            <button style={S.btn} onClick={enablePush} disabled={pushBusy}>
+              {pushBusy ? 'Testando...' : 'Enviar push de teste'}
+            </button>
+            <button
+              style={{ ...S.btn, background: '#f1f5f9', color: '#64748b' }}
+              onClick={disablePush}
+              disabled={pushBusy}
+            >
+              Desativar
+            </button>
+          </div>
+        )}
+        {pushStatus === 'denied' && (
+          <div style={{ fontSize: 12, color: '#dc2626', marginTop: 4 }}>
+            Para reativar: clique no cadeado na barra de endereço → Notificações → Permitir
+          </div>
+        )}
+      </div>
+
       {/* Senha */}
       <div style={S.section}>
         <div style={S.sectionTitle}>🔒 Alterar senha</div>
-
         <Field label="Senha atual">
           <input type="password" style={S.input} value={pwCurrent} onChange={(e) => setPwCurrent(e.target.value)} placeholder="••••••••" />
         </Field>
@@ -125,13 +226,11 @@ export default function ConfigPage() {
         <Field label="Confirmar nova senha">
           <input type="password" style={S.input} value={pwConfirm} onChange={(e) => setPwConfirm(e.target.value)} placeholder="Repita a nova senha" />
         </Field>
-
         {pwMsg && (
           <div style={{ ...S.msg, color: pwMsg.ok ? '#16a34a' : '#dc2626', background: pwMsg.ok ? '#f0fdf4' : '#fef2f2' }}>
             {pwMsg.text}
           </div>
         )}
-
         <button style={S.btn} onClick={savePassword} disabled={savingPw || !pwCurrent || !pwNew}>
           {savingPw ? 'Salvando...' : 'Alterar senha'}
         </button>
