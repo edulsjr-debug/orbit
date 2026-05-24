@@ -96,18 +96,28 @@ export async function eventRoutes(app: FastifyInstance) {
         userId: uid,
       }))
 
-    const operations = [
-      prisma.event.update({ where: { id }, data: body }),
-      ...(historyData.length > 0
-        ? [prisma.eventHistory.createMany({ data: historyData })]
-        : []),
-      prisma.event.findUniqueOrThrow({
-        where: { id },
-        include: { history: { orderBy: { createdAt: 'desc' } } },
-      }),
-    ]
+    let updatedEvent
 
-    const [, , updatedEvent] = await prisma.$transaction(operations as any)
+    if (historyData.length > 0) {
+      const [, , result] = await prisma.$transaction([
+        prisma.event.update({ where: { id }, data: body }),
+        prisma.eventHistory.createMany({ data: historyData }),
+        prisma.event.findUniqueOrThrow({
+          where: { id },
+          include: { history: { orderBy: { createdAt: 'desc' } } },
+        }),
+      ])
+      updatedEvent = result
+    } else {
+      const [, result] = await prisma.$transaction([
+        prisma.event.update({ where: { id }, data: body }),
+        prisma.event.findUniqueOrThrow({
+          where: { id },
+          include: { history: { orderBy: { createdAt: 'desc' } } },
+        }),
+      ])
+      updatedEvent = result
+    }
 
     await cancelEventNotifications(id)
     await scheduleEventNotifications(updatedEvent)
