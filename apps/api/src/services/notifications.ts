@@ -1,5 +1,8 @@
 import { prisma } from '@orbit/database'
 import type { Event } from '@orbit/database'
+import { Resend } from 'resend'
+
+const resend = new Resend(process.env.RESEND_API_KEY)
 
 // Agenda jobs de notificação para um compromisso
 export async function scheduleEventNotifications(event: Event) {
@@ -55,21 +58,22 @@ export async function sendPushNotification(userId: string, title: string, body: 
   }
 }
 
-// Envia email via Resend
-export async function sendEmailNotification(email: string, subject: string, html: string) {
-  if (!process.env.RESEND_API_KEY) return
+export async function sendEmail(to: string, subject: string, html: string) {
   try {
-    const { Resend } = await import('resend')
-    const resend = new Resend(process.env.RESEND_API_KEY)
     await resend.emails.send({
-      from: process.env.EMAIL_FROM ?? 'Orbit <noreply@orbit.app>',
-      to: email,
+      from: 'Orbit <notificacoes@orbit.app>',
+      to,
       subject,
       html,
     })
   } catch (err) {
     console.error('Falha ao enviar email:', err)
   }
+}
+
+// Envia email via Resend
+export async function sendEmailNotification(email: string, subject: string, html: string) {
+  await sendEmail(email, subject, html)
 }
 
 // Salva notificação no banco (sininho interno)
