@@ -35,10 +35,10 @@ export async function projectRoutes(app: FastifyInstance) {
       orderBy: { createdAt: 'desc' },
     })
     return {
-      data: projects.map((p) => ({
+      data: projects.map((p: any) => ({
         ...p,
         taskCount: p.tasks.length,
-        taskDone: p.tasks.filter((t) => t.status === 'done').length,
+        taskDone: p.tasks.filter((t: any) => t.status === 'done').length,
         hasHistory: p.history.length > 0,
       })),
     }
