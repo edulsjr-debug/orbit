@@ -3,6 +3,7 @@
 import { usePathname, useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { api } from '@/lib/api'
+import { PushSetup } from '@/components/PushSetup'
 
 const NAV = [
   { href: '/dashboard', icon: '🏠', label: 'Dashboard' },
@@ -26,6 +27,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
+      <PushSetup />
       {/* Sidebar */}
       <aside style={S.sidebar}>
         <div style={S.logo}>
