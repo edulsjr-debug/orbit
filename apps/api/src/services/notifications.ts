@@ -1,11 +1,11 @@
 import { prisma } from '@orbit/database'
-import type { Event } from '@orbit/database'
+import type { Prisma } from '@prisma/client'
 import { Resend } from 'resend'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
 // Agenda jobs de notificação para um compromisso
-export async function scheduleEventNotifications(event: Event) {
+export async function scheduleEventNotifications(event: Prisma.EventGetPayload<{}>) {
   const channels: string[] = []
   if (event.notifPush) channels.push('push')
   if (event.notifEmail) channels.push('email')
