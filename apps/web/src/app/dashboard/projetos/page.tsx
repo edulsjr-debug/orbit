@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import useSWR, { mutate } from 'swr'
 import { api } from '@/lib/api'
+import { useIsMobile } from '@/lib/use-mobile'
 
 type Project = {
   id: string
@@ -59,6 +60,7 @@ const PRIORITY_COLOR: Record<string, string> = {
 const fetcher = (url: string) => api.get<any>(url).then((r: any) => r.data)
 
 export default function ProjetosPage() {
+  const isMobile = useIsMobile()
   const { data: projects = [] } = useSWR<Project[]>('/projects', fetcher)
   const { data: tasks = [] } = useSWR<Task[]>('/tasks', fetcher)
 
@@ -150,7 +152,7 @@ export default function ProjetosPage() {
           </button>
         </div>
       ) : (
-        <div style={S.mainGrid}>
+        <div style={{ ...S.mainGrid, ...(isMobile ? S.mainGridMobile : null) }}>
           <section style={S.projectsPanel}>
             <div style={S.panelHead}>
               <div>
@@ -290,7 +292,7 @@ export default function ProjetosPage() {
 
       {modal && (
         <div style={S.overlay} onClick={() => setModal(false)}>
-          <div style={S.modal} onClick={(e) => e.stopPropagation()}>
+          <div style={{ ...S.modal, ...(isMobile ? S.modalMobile : null) }} onClick={(e) => e.stopPropagation()}>
             <div style={S.modalHead}>
               <span style={{ fontWeight: 700 }}>
                 {editing ? 'Editar projeto' : 'Novo projeto'}
@@ -462,6 +464,9 @@ const S: Record<string, React.CSSProperties> = {
     display: 'grid',
     gridTemplateColumns: 'minmax(0, 1.4fr) minmax(300px, 0.8fr)',
     gap: 16,
+  },
+  mainGridMobile: {
+    gridTemplateColumns: '1fr',
   },
   projectsPanel: {
     background: '#FFFFFF',
@@ -670,6 +675,10 @@ const S: Record<string, React.CSSProperties> = {
     maxHeight: '90vh',
     overflow: 'auto',
     boxShadow: '0 30px 70px rgba(5,11,20,0.22)',
+  },
+  modalMobile: {
+    width: '100%',
+    borderRadius: 20,
   },
   modalHead: {
     padding: '18px 22px',

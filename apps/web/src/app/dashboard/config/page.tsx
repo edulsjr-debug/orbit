@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import useSWR, { mutate } from 'swr'
 import { api } from '@/lib/api'
 import { subscribePush, unsubscribePush } from '@/lib/push'
+import { useIsMobile } from '@/lib/use-mobile'
 
 type User = {
   id: string
@@ -25,6 +26,7 @@ function PrumoMark() {
 }
 
 export default function ConfigPage() {
+  const isMobile = useIsMobile()
   const { data: user } = useSWR<User>('/auth/me', fetcher)
 
   const [name, setName] = useState('')
@@ -207,7 +209,7 @@ export default function ConfigPage() {
         </div>
       </section>
 
-      <div style={S.grid}>
+      <div style={{ ...S.grid, ...(isMobile ? S.gridMobile : null) }}>
         <section style={S.card}>
           <div style={S.cardHead}>
             <div>
@@ -473,6 +475,9 @@ const S: Record<string, React.CSSProperties> = {
     display: 'grid',
     gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
     gap: 16,
+  },
+  gridMobile: {
+    gridTemplateColumns: '1fr',
   },
   card: {
     background: '#FFFFFF',

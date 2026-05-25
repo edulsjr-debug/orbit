@@ -2,6 +2,7 @@
 
 import useSWR, { mutate } from 'swr'
 import { api } from '@/lib/api'
+import { useIsMobile } from '@/lib/use-mobile'
 
 type Notification = {
   id: string
@@ -38,6 +39,7 @@ function timeAgo(date: string) {
 }
 
 export default function NotificacoesPage() {
+  const isMobile = useIsMobile()
   const { data: notifications = [] } = useSWR<Notification[]>('/notifications', fetcher)
   const { data: countData } = useSWR('/notifications/unread-count', fetcher)
 
@@ -83,7 +85,7 @@ export default function NotificacoesPage() {
           </div>
         </div>
       ) : (
-        <div style={S.mainGrid}>
+        <div style={{ ...S.mainGrid, ...(isMobile ? S.mainGridMobile : null) }}>
           <section style={S.panel}>
             <div style={S.panelHead}>
               <div>
@@ -97,7 +99,13 @@ export default function NotificacoesPage() {
                 <div style={S.emptyInline}>Tudo certo por aqui. Nenhum alerta pendente.</div>
               ) : (
                 unread.map((n) => (
-                  <div key={n.id} style={S.cardUnread}>
+                  <div
+                    key={n.id}
+                    style={{
+                      ...S.cardUnread,
+                      ...(isMobile ? S.cardUnreadMobile : null),
+                    }}
+                  >
                     <div style={S.cardSignal} />
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={S.cardTitle}>{n.title}</div>
@@ -112,7 +120,7 @@ export default function NotificacoesPage() {
                         <span>{timeAgo(n.createdAt)}</span>
                       </div>
                     </div>
-                    <button style={S.readBtn} onClick={() => markRead(n.id)}>
+                    <button style={{ ...S.readBtn, ...(isMobile ? S.readBtnMobile : null) }} onClick={() => markRead(n.id)}>
                       Marcar lida
                     </button>
                   </div>
@@ -225,6 +233,9 @@ const S: Record<string, React.CSSProperties> = {
     gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
     gap: 16,
   },
+  mainGridMobile: {
+    gridTemplateColumns: '1fr',
+  },
   panel: {
     background: '#FFFFFF',
     borderRadius: 24,
@@ -264,6 +275,9 @@ const S: Record<string, React.CSSProperties> = {
     border: '1px solid rgba(184,146,79,0.16)',
     borderRadius: 18,
     padding: '16px 16px',
+  },
+  cardUnreadMobile: {
+    flexDirection: 'column',
   },
   cardRead: {
     display: 'flex',
@@ -334,5 +348,8 @@ const S: Record<string, React.CSSProperties> = {
     fontSize: 12,
     fontWeight: 700,
     flexShrink: 0,
+  },
+  readBtnMobile: {
+    width: '100%',
   },
 }

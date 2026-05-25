@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import useSWR, { mutate } from 'swr'
 import { api } from '@/lib/api'
+import { useIsMobile } from '@/lib/use-mobile'
 
 type Priority = 'low' | 'medium' | 'high'
 type Status = 'pending' | 'in_progress' | 'done'
@@ -72,6 +73,7 @@ const EMPTY_FORM: TaskForm = {
 const fetcher = (url: string) => api.get<any>(url).then((r: any) => r.data)
 
 export default function TarefasPage() {
+  const isMobile = useIsMobile()
   const { data: tasks = [] } = useSWR<Task[]>('/tasks', fetcher)
   const { data: projects = [] } = useSWR<Project[]>('/projects', fetcher)
 
@@ -171,7 +173,12 @@ export default function TarefasPage() {
         </button>
       </section>
 
-      <section style={S.metrics}>
+      <section
+        style={{
+          ...S.metrics,
+          ...(isMobile ? S.metricsMobile : null),
+        }}
+      >
         <MetricCard label="Todas" value={counts.all} accent="#050B14" />
         <MetricCard label="Pendentes" value={counts.pending} accent="#64748B" />
         <MetricCard label="Em andamento" value={counts.in_progress} accent="#1D4ED8" />
@@ -191,7 +198,7 @@ export default function TarefasPage() {
         ))}
       </div>
 
-      <section style={S.mainGrid}>
+      <section style={{ ...S.mainGrid, ...(isMobile ? S.mainGridMobile : null) }}>
         <div style={S.panel}>
           <div style={S.panelHead}>
             <div>
@@ -356,7 +363,7 @@ export default function TarefasPage() {
 
       {modal && (
         <div style={S.overlay} onClick={() => setModal(false)}>
-          <div style={S.modal} onClick={(e) => e.stopPropagation()}>
+          <div style={{ ...S.modal, ...(isMobile ? S.modalMobile : null) }} onClick={(e) => e.stopPropagation()}>
             <div style={S.modalHead}>
               <span style={{ fontWeight: 700 }}>
                 {editing ? 'Editar tarefa' : 'Nova tarefa'}
@@ -385,7 +392,7 @@ export default function TarefasPage() {
                 />
               </Field>
 
-              <div style={S.cols2}>
+              <div style={{ ...S.cols2, ...(isMobile ? S.colsMobile : null) }}>
                 <Field label="Vencimento">
                   <input
                     type="datetime-local"
@@ -407,7 +414,7 @@ export default function TarefasPage() {
                 </Field>
               </div>
 
-              <div style={S.cols2}>
+              <div style={{ ...S.cols2, ...(isMobile ? S.colsMobile : null) }}>
                 <Field label="Status">
                   <select
                     style={S.input}
@@ -552,6 +559,9 @@ const S: Record<string, React.CSSProperties> = {
     gap: 14,
     marginBottom: 18,
   },
+  metricsMobile: {
+    gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+  },
   metricCard: {
     position: 'relative',
     background: '#FFFFFF',
@@ -614,6 +624,9 @@ const S: Record<string, React.CSSProperties> = {
     display: 'grid',
     gridTemplateColumns: 'minmax(0, 1.5fr) minmax(300px, 0.8fr)',
     gap: 16,
+  },
+  mainGridMobile: {
+    gridTemplateColumns: '1fr',
   },
   panel: {
     background: '#FFFFFF',
@@ -841,6 +854,10 @@ const S: Record<string, React.CSSProperties> = {
     overflow: 'auto',
     boxShadow: '0 30px 70px rgba(5,11,20,0.22)',
   },
+  modalMobile: {
+    width: '100%',
+    borderRadius: 20,
+  },
   modalHead: {
     padding: '18px 22px',
     borderBottom: '1px solid #EDF1F4',
@@ -871,6 +888,9 @@ const S: Record<string, React.CSSProperties> = {
     display: 'grid',
     gridTemplateColumns: '1fr 1fr',
     gap: 12,
+  },
+  colsMobile: {
+    gridTemplateColumns: '1fr',
   },
   fieldLabel: {
     display: 'block',

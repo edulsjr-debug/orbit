@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import useSWR from 'swr'
 import { api } from '@/lib/api'
+import { useIsMobile } from '@/lib/use-mobile'
 
 type ViewMode = 'mes' | 'lista' | 'kanban'
 type DensityMode = 'detailed' | 'compact'
@@ -158,6 +159,7 @@ async function putJson<T>(path: string, body: unknown): Promise<T> {
 }
 
 export default function CompromissosPage() {
+  const isMobile = useIsMobile()
   const today = useMemo(() => startOfDay(new Date()), [])
   const [view, setView] = useState<ViewMode>('mes')
   const [density, setDensity] = useState<DensityMode>('detailed')
@@ -349,20 +351,20 @@ export default function CompromissosPage() {
 
       {view === 'mes' && (
         <div style={S.fadeIn}>
-          <div style={S.calendarCard}>
+          <div style={{ ...S.calendarCard, ...(isMobile ? S.calendarCardMobile : null) }}>
             <div style={S.calendarNav}>
               <button type="button" style={S.iconButton} onClick={() => setMonthCursor(new Date(monthCursor.getFullYear(), monthCursor.getMonth() - 1, 1))}>‹</button>
               <h3 style={S.calendarTitle}>{monthCursor.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}</h3>
               <button type="button" style={S.iconButton} onClick={() => setMonthCursor(new Date(monthCursor.getFullYear(), monthCursor.getMonth() + 1, 1))}>›</button>
             </div>
 
-            <div style={S.weekHeader}>
+            <div style={{ ...S.weekHeader, ...(isMobile ? S.weekHeaderMobile : null) }}>
               {WEEK_LABELS.map((label) => (
                 <div key={label} style={S.weekHeaderCell}>{label}</div>
               ))}
             </div>
 
-            <div style={S.calendarGrid}>
+            <div style={{ ...S.calendarGrid, ...(isMobile ? S.calendarGridMobile : null) }}>
               {monthCells.map((cell) => {
                 const dayEvents = eventsByDay.get(cell.key) ?? []
                 const isToday = sameDay(cell.date, today)
@@ -495,7 +497,7 @@ export default function CompromissosPage() {
 
       {modalOpen && (
         <div style={S.overlay} onClick={(event) => { if (event.target === event.currentTarget) setModalOpen(false) }}>
-          <div style={S.modal}>
+          <div style={{ ...S.modal, ...(isMobile ? S.modalMobile : null) }}>
             <div style={S.modalHeader}>
               <h3 style={S.modalTitle}>{editingEvent ? 'Editar compromisso' : 'Novo compromisso'}</h3>
               <button type="button" style={S.closeButton} onClick={() => setModalOpen(false)}>×</button>
@@ -516,7 +518,7 @@ export default function CompromissosPage() {
                 <Field label="Data e hora">
                   <input type="datetime-local" style={S.input} value={form.startAt} onChange={(event) => setForm((current) => ({ ...current, startAt: event.target.value }))} />
                 </Field>
-                <div style={S.formGrid}>
+                <div style={{ ...S.formGrid, ...(isMobile ? S.formGridMobile : null) }}>
                   <Field label="Duração">
                     <input type="number" min={15} step={15} style={S.input} value={form.durationMinutes} onChange={(event) => setForm((current) => ({ ...current, durationMinutes: Number(event.target.value) }))} />
                   </Field>
@@ -667,11 +669,14 @@ const S: Record<string, React.CSSProperties> = {
   deleteButton: { border: '1px solid rgba(153,27,27,0.14)', background: '#fff1f2', color: '#991b1b', borderRadius: 14, padding: '10px 14px', fontSize: 13, fontWeight: 700, cursor: 'pointer' },
   iconButton: { width: 38, height: 38, border: '1px solid rgba(5,11,20,0.08)', background: '#fff', borderRadius: 12, fontSize: 18, cursor: 'pointer' },
   calendarCard: { background: '#fff', borderRadius: 24, border: '1px solid rgba(5,11,20,0.08)', overflow: 'hidden', marginBottom: 16 },
+  calendarCardMobile: { overflowX: 'auto' },
   calendarNav: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 18px', borderBottom: '1px solid #edf1f4' },
   calendarTitle: { fontSize: 15, fontWeight: 800, textTransform: 'capitalize' },
   weekHeader: { display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)' },
+  weekHeaderMobile: { minWidth: 560 },
   weekHeaderCell: { textAlign: 'center', padding: '10px 6px', fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', borderBottom: '1px solid #f8fafc' },
   calendarGrid: { display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)' },
+  calendarGridMobile: { minWidth: 560 },
   dayCell: { minHeight: 78, border: 'none', borderTop: '1px solid #f8fafc', borderRight: '1px solid #f8fafc', background: '#fff', padding: 8, cursor: 'pointer' },
   dayCellMuted: { background: '#fcfcfd', color: '#cbd5e1' },
   dayCellSelected: { background: '#fbf4e4' },
@@ -717,6 +722,7 @@ const S: Record<string, React.CSSProperties> = {
   kanbanMeta: { fontSize: 11, color: '#64748b', marginTop: 4 },
   overlay: { position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, .55)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, zIndex: 200 },
   modal: { width: '100%', maxWidth: 760, maxHeight: '90vh', overflow: 'auto', background: '#fff', borderRadius: 24, boxShadow: '0 30px 60px rgba(0,0,0,.24)' },
+  modalMobile: { maxWidth: '100%', borderRadius: 20 },
   modalHeader: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 22px', borderBottom: '1px solid #edf1f4' },
   modalTitle: { fontSize: 18, fontWeight: 800, color: '#0f172a' },
   closeButton: { border: 'none', background: 'transparent', fontSize: 28, lineHeight: 1, cursor: 'pointer', color: '#94a3b8' },
@@ -725,6 +731,7 @@ const S: Record<string, React.CSSProperties> = {
   modalTabActive: { background: '#fff', color: '#0f172a', boxShadow: '0 1px 3px rgba(0,0,0,.08)' },
   modalBody: { padding: 22, display: 'flex', flexDirection: 'column', gap: 14 },
   formGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 },
+  formGridMobile: { gridTemplateColumns: '1fr' },
   label: { fontSize: 11, fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '.4px', marginBottom: 6 },
   input: { width: '100%', border: '1px solid rgba(5,11,20,0.1)', borderRadius: 14, padding: '11px 13px', fontSize: 14, outline: 'none' },
   notificationBlock: { border: '1px solid rgba(5,11,20,0.08)', borderRadius: 18, padding: 16, background: '#fafbfd' },

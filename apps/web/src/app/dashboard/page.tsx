@@ -2,6 +2,7 @@
 
 import useSWR from 'swr'
 import { api } from '@/lib/api'
+import { useIsMobile } from '@/lib/use-mobile'
 
 const fetcher = (url: string) => api.get<any>(url).then((r: any) => r.data)
 
@@ -28,6 +29,7 @@ function formatLongDate(date: Date) {
 }
 
 export default function DashboardPage() {
+  const isMobile = useIsMobile()
   const now = new Date()
   const today = startOfDay(now)
   const tomorrow = new Date(today)
@@ -78,7 +80,12 @@ export default function DashboardPage() {
         }
       `}</style>
 
-      <section style={S.hero}>
+      <section
+        style={{
+          ...S.hero,
+          ...(isMobile ? S.heroMobile : null),
+        }}
+      >
         <div style={S.heroPanel}>
           <div>
             <div style={S.eyebrow}>Visão diária</div>
@@ -163,7 +170,7 @@ export default function DashboardPage() {
         />
       </section>
 
-      <section style={S.mainGrid}>
+      <section style={{ ...S.mainGrid, ...(isMobile ? S.mainGridMobile : null) }}>
         <Section
           title="Compromissos do dia"
           subtitle="Os próximos pontos da sua rotina"
@@ -405,6 +412,9 @@ const S: Record<string, React.CSSProperties> = {
     gap: 18,
     marginBottom: 18,
   },
+  heroMobile: {
+    gridTemplateColumns: '1fr',
+  },
   heroPanel: {
     background: 'linear-gradient(135deg, #050B14 0%, #0F1825 100%)',
     color: '#F5F2EC',
@@ -558,6 +568,9 @@ const S: Record<string, React.CSSProperties> = {
     gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
     gap: 16,
     marginBottom: 18,
+  },
+  mainGridMobile: {
+    gridTemplateColumns: '1fr',
   },
   sectionCard: {
     background: '#FFFFFF',
