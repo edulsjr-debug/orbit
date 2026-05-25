@@ -4,24 +4,20 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { api } from '@/lib/api'
 
-function PrumoMark({ size = 16, dark = false }: { size?: number; dark?: boolean }) {
-  const stem = dark ? '#050B14' : '#F5F2EC'
-  const brass = '#B8924F'
-
+function OrbitMark({ size = 84 }: { size?: number }) {
   return (
-    <svg viewBox="0 0 28 56" width={size / 2} height={size} fill="none" aria-hidden="true">
-      <rect x="6" y="4" width="4" height="48" fill={stem} />
-      <rect x="10" y="4" width="12" height="16" fill={brass} />
-    </svg>
-  )
-}
-
-function OrbitMark() {
-  return (
-    <div style={styles.orbitMark} aria-hidden="true">
-      <span style={styles.orbitRing} />
-      <span style={styles.orbitCore} />
-      <span style={styles.orbitDot} />
+    <div
+      style={{ ...styles.orbitMark, width: size, height: size, borderRadius: Math.round(size * 0.28) }}
+      aria-hidden="true"
+    >
+      <span
+        style={{
+          ...styles.orbitRing,
+          inset: Math.round(size * 0.2),
+          borderWidth: Math.max(2, Math.round(size * 0.035)),
+        }}
+      />
+      <span style={{ ...styles.orbitCore, inset: Math.round(size * 0.375) }} />
     </div>
   )
 }
@@ -62,26 +58,17 @@ export default function LoginPage() {
       <div style={styles.frame}>
         <section style={styles.brandPanel}>
           <div style={styles.brandGrid} />
-          <div style={styles.brandLineA} />
-          <div style={styles.brandLineB} />
           <div style={styles.brandGlow} />
 
           <div style={styles.brandInner}>
-            <div style={styles.endorsementDark}>
-              <span style={styles.endorsementLabel}>Um produto</span>
-              <span style={styles.endorsementBrand}>
-                <PrumoMark size={14} />
-                Prumo
-              </span>
-            </div>
-
             <div style={styles.heroBlock}>
               <OrbitMark />
               <div>
-                <h1 style={styles.heroTitle}>Orbit</h1>
+                <div style={styles.productLabel}>Orbit</div>
+                <h1 style={styles.heroTitle}>Organize o dia com clareza.</h1>
                 <p style={styles.heroText}>
-                  Compromissos, tarefas e projetos em um fluxo mais claro, confiável
-                  e contínuo.
+                  Compromissos, tarefas e projetos em um fluxo confiavel, continuo e facil
+                  de acompanhar.
                 </p>
               </div>
             </div>
@@ -98,7 +85,7 @@ export default function LoginPage() {
               <div style={styles.previewList}>
                 <div style={styles.previewItem}>
                   <span style={styles.previewTime}>09:00</span>
-                  <span style={styles.previewText}>Revisão de prioridades</span>
+                  <span style={styles.previewText}>Revisao de prioridades</span>
                 </div>
                 <div style={styles.previewItem}>
                   <span style={styles.previewTime}>11:30</span>
@@ -113,12 +100,12 @@ export default function LoginPage() {
 
             <div style={styles.featureStrip}>
               <div style={styles.featureItem}>
-                <span style={styles.featureKicker}>Notificações</span>
+                <span style={styles.featureKicker}>Notificacoes</span>
                 <strong style={styles.featureValue}>Celular + navegador</strong>
               </div>
               <div style={styles.featureItem}>
-                <span style={styles.featureKicker}>Operação</span>
-                <strong style={styles.featureValue}>Estrutura sem ruído</strong>
+                <span style={styles.featureKicker}>Fluxo</span>
+                <strong style={styles.featureValue}>Tudo no mesmo espaco</strong>
               </div>
             </div>
           </div>
@@ -127,13 +114,7 @@ export default function LoginPage() {
         <section style={styles.formPanel}>
           <div style={styles.formShell}>
             <div style={styles.headerBlock}>
-              <div style={styles.endorsementLight}>
-                <span style={styles.endorsementLabelLight}>Orbit, um produto</span>
-                <span style={styles.endorsementBrandLight}>
-                  <PrumoMark size={14} dark />
-                  Prumo
-                </span>
-              </div>
+              <div style={styles.endorsementLight}>Orbit, um produto Prumo</div>
 
               <div>
                 <h2 style={styles.formTitle}>
@@ -141,8 +122,8 @@ export default function LoginPage() {
                 </h2>
                 <p style={styles.formText}>
                   {mode === 'login'
-                    ? 'Acesse sua rotina com compromissos, tarefas e notificações no mesmo lugar.'
-                    : 'Comece com uma base simples e confiável para organizar o trabalho.'}
+                    ? 'Acesse sua rotina com compromissos, tarefas e notificacoes no mesmo lugar.'
+                    : 'Comece com uma base simples e confiavel para organizar o trabalho.'}
                 </p>
               </div>
             </div>
@@ -215,9 +196,7 @@ export default function LoginPage() {
 
             <div style={styles.footerNote}>
               <span style={styles.footerLine} />
-              <span>
-                Notificações em tempo real para compromissos, tarefas e projetos.
-              </span>
+              <span>Notificacoes em tempo real para compromissos, tarefas e projetos.</span>
             </div>
           </div>
         </section>
@@ -231,7 +210,7 @@ const styles: Record<string, React.CSSProperties> = {
     minHeight: '100vh',
     padding: 'clamp(16px, 3vw, 32px)',
     background:
-      'radial-gradient(circle at top left, rgba(184,146,79,0.18), transparent 28%), linear-gradient(135deg, #050B14 0%, #0B1421 40%, #101C2B 100%)',
+      'radial-gradient(circle at top left, rgba(90,90,230,0.18), transparent 28%), linear-gradient(135deg, #050B14 0%, #0B1421 40%, #101C2B 100%)',
   },
   frame: {
     minHeight: 'calc(100vh - 64px)',
@@ -245,8 +224,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   brandPanel: {
     position: 'relative',
-    background:
-      'linear-gradient(180deg, rgba(5,11,20,0.96) 0%, rgba(9,18,30,0.98) 100%)',
+    background: 'linear-gradient(180deg, rgba(5,11,20,0.96) 0%, rgba(9,18,30,0.98) 100%)',
     color: '#F5F2EC',
     overflow: 'hidden',
   },
@@ -254,25 +232,9 @@ const styles: Record<string, React.CSSProperties> = {
     position: 'absolute',
     inset: 0,
     backgroundImage:
-      'linear-gradient(rgba(245,242,236,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(245,242,236,0.06) 1px, transparent 1px)',
+      'linear-gradient(rgba(245,242,236,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(245,242,236,0.05) 1px, transparent 1px)',
     backgroundSize: '72px 72px',
     maskImage: 'linear-gradient(180deg, rgba(0,0,0,0.65), transparent 88%)',
-  },
-  brandLineA: {
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
-    left: '17%',
-    width: '1px',
-    background: 'linear-gradient(180deg, transparent, rgba(184,146,79,0.9), transparent)',
-  },
-  brandLineB: {
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
-    left: '79%',
-    width: '1px',
-    background: 'linear-gradient(180deg, transparent, rgba(245,242,236,0.28), transparent)',
   },
   brandGlow: {
     position: 'absolute',
@@ -281,7 +243,7 @@ const styles: Record<string, React.CSSProperties> = {
     borderRadius: '50%',
     top: -120,
     right: -120,
-    background: 'radial-gradient(circle, rgba(184,146,79,0.16), transparent 70%)',
+    background: 'radial-gradient(circle, rgba(90,90,230,0.2), transparent 70%)',
   },
   brandInner: {
     position: 'relative',
@@ -290,69 +252,41 @@ const styles: Record<string, React.CSSProperties> = {
     flexDirection: 'column',
     justifyContent: 'space-between',
     minHeight: '100%',
-    padding: 'clamp(24px, 4vw, 40px) clamp(24px, 4vw, 40px) clamp(24px, 4vw, 36px)',
-  },
-  endorsementDark: {
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: 12,
-    fontSize: 11,
-    letterSpacing: '0.12em',
-    textTransform: 'uppercase',
-    color: 'rgba(245,242,236,0.68)',
-  },
-  endorsementLabel: {
-    display: 'inline-flex',
-    alignItems: 'center',
-  },
-  endorsementBrand: {
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: 8,
-    color: '#F5F2EC',
-    fontWeight: 600,
+    padding: 'clamp(24px, 4vw, 40px)',
   },
   heroBlock: {
     display: 'grid',
     gridTemplateColumns: 'auto 1fr',
     gap: 22,
     alignItems: 'center',
-    marginTop: 28,
+    marginTop: 8,
   },
   orbitMark: {
     position: 'relative',
-    width: 84,
-    height: 84,
-    borderRadius: 24,
-    background: 'rgba(245,242,236,0.04)',
-    border: '1px solid rgba(245,242,236,0.12)',
+    background: 'linear-gradient(135deg, #5A5AE6 0%, #6F70F2 100%)',
+    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.14)',
+    flexShrink: 0,
   },
   orbitRing: {
     position: 'absolute',
-    inset: 16,
     borderRadius: '50%',
-    border: '2px solid rgba(245,242,236,0.85)',
-    transform: 'rotate(-18deg)',
+    border: '2px solid rgba(255,255,255,0.95)',
   },
   orbitCore: {
     position: 'absolute',
-    inset: 31,
     borderRadius: '50%',
-    background: '#B8924F',
-    boxShadow: '0 0 22px rgba(184,146,79,0.35)',
+    background: '#FFFFFF',
   },
-  orbitDot: {
-    position: 'absolute',
-    top: 17,
-    right: 17,
-    width: 10,
-    height: 10,
-    borderRadius: '50%',
-    background: '#F5F2EC',
+  productLabel: {
+    fontSize: 15,
+    fontWeight: 700,
+    color: 'rgba(245,242,236,0.92)',
+    letterSpacing: '-0.02em',
   },
   heroTitle: {
-    fontSize: 'clamp(40px, 7vw, 52px)',
-    lineHeight: 1,
+    marginTop: 12,
+    fontSize: 'clamp(38px, 6vw, 52px)',
+    lineHeight: 1.02,
     letterSpacing: '-0.05em',
     fontWeight: 700,
   },
@@ -392,8 +326,8 @@ const styles: Record<string, React.CSSProperties> = {
   metricPill: {
     padding: '10px 12px',
     borderRadius: 999,
-    background: 'rgba(184,146,79,0.14)',
-    color: '#E9D3A9',
+    background: 'rgba(90,90,230,0.16)',
+    color: '#E3E5FF',
     fontSize: 12,
     fontWeight: 600,
   },
@@ -411,7 +345,7 @@ const styles: Record<string, React.CSSProperties> = {
     borderTop: '1px solid rgba(245,242,236,0.08)',
   },
   previewTime: {
-    color: '#B8924F',
+    color: '#AEB4FF',
     fontSize: 12,
     fontWeight: 700,
     letterSpacing: '0.08em',
@@ -467,24 +401,10 @@ const styles: Record<string, React.CSSProperties> = {
     gap: 18,
   },
   endorsementLight: {
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: 10,
-    flexWrap: 'wrap',
-  },
-  endorsementLabelLight: {
     fontSize: 11,
     color: '#64748B',
     letterSpacing: '0.12em',
     textTransform: 'uppercase',
-  },
-  endorsementBrandLight: {
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: 8,
-    color: '#050B14',
-    fontWeight: 700,
-    letterSpacing: '0.02em',
   },
   formTitle: {
     fontSize: 'clamp(34px, 6vw, 42px)',

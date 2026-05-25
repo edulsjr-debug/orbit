@@ -12,35 +12,40 @@ type Notification = { id: string; title: string; body: string; read: boolean; cr
 const fetcher = (url: string) => api.get<any>(url).then((r: any) => r.data)
 
 const NAV = [
-  { href: '/dashboard', short: 'IN', label: 'Início' },
+  { href: '/dashboard', short: 'IN', label: 'Inicio' },
   { href: '/dashboard/compromissos', short: 'CO', label: 'Compromissos' },
   { href: '/dashboard/tarefas', short: 'TA', label: 'Tarefas' },
   { href: '/dashboard/projetos', short: 'PR', label: 'Projetos' },
-  { href: '/dashboard/notificacoes', short: 'NO', label: 'Notificações' },
-  { href: '/dashboard/config', short: 'CF', label: 'Configurações' },
+  { href: '/dashboard/notificacoes', short: 'NO', label: 'Notificacoes' },
+  { href: '/dashboard/config', short: 'CF', label: 'Configuracoes' },
 ]
 
 const VERSION = process.env.NEXT_PUBLIC_APP_VERSION ?? '1.0.0'
 const COMMIT = (process.env.NEXT_PUBLIC_COMMIT_SHA ?? 'dev').slice(0, 7)
 
-function PrumoMark({ size = 14, dark = false }: { size?: number; dark?: boolean }) {
-  const stem = dark ? '#050B14' : '#F5F2EC'
-  const brass = '#B8924F'
-
+function OrbitMark({ size = 48 }: { size?: number }) {
   return (
-    <svg viewBox="0 0 28 56" width={size / 2} height={size} fill="none" aria-hidden="true">
-      <rect x="6" y="4" width="4" height="48" fill={stem} />
-      <rect x="10" y="4" width="12" height="16" fill={brass} />
-    </svg>
-  )
-}
-
-function OrbitMark() {
-  return (
-    <div style={S.orbitMark} aria-hidden="true">
-      <span style={S.orbitRing} />
-      <span style={S.orbitCore} />
-      <span style={S.orbitDot} />
+    <div
+      style={{ ...S.orbitMark, width: size, height: size, borderRadius: Math.round(size * 0.28) }}
+      aria-hidden="true"
+    >
+      <span
+        style={{
+          ...S.orbitRing,
+          inset: Math.round(size * 0.2),
+          borderWidth: Math.max(2, Math.round(size * 0.035)),
+        }}
+      />
+      <span style={{ ...S.orbitCore, inset: Math.round(size * 0.375) }} />
+      <span
+        style={{
+          ...S.orbitDot,
+          top: Math.round(size * 0.22),
+          right: Math.round(size * 0.22),
+          width: Math.max(5, Math.round(size * 0.1)),
+          height: Math.max(5, Math.round(size * 0.1)),
+        }}
+      />
     </div>
   )
 }
@@ -117,24 +122,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         >
           <div style={S.sidebarTop}>
             <div style={S.logoRow}>
-              <OrbitMark />
+              <OrbitMark size={44} />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={S.logoName}>Orbit</div>
-                <div style={S.logoSub}>Organização com estrutura</div>
+                <div style={S.logoSub}>Seu espaco de organizacao</div>
               </div>
               {isMobile && (
                 <button onClick={() => setSidebarOpen(false)} style={S.closeButton}>
-                  ×
+                  x
                 </button>
               )}
-            </div>
-
-            <div style={S.endorsement}>
-              <span style={S.endorsementLabel}>Um produto</span>
-              <span style={S.endorsementBrand}>
-                <PrumoMark size={14} />
-                Prumo
-              </span>
             </div>
           </div>
 
@@ -164,17 +161,18 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <div style={S.avatar}>{initial}</div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={S.userName}>{firstName}</div>
-                <div style={S.userMeta}>Conta e preferências</div>
+                <div style={S.userMeta}>Conta e preferencias</div>
               </div>
             </button>
 
             <button style={S.logoutButton} onClick={logout}>
-              Sair da sessão
+              Sair da sessao
             </button>
 
             <div style={S.versionBar}>
               Orbit v{VERSION} · <span style={{ fontFamily: 'monospace' }}>{COMMIT}</span>
             </div>
+            <div style={S.brandFootnote}>Orbit, um produto Prumo</div>
           </div>
         </aside>
       )}
@@ -184,12 +182,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <div style={S.topbarLeft}>
             {isMobile && (
               <button onClick={() => setSidebarOpen(true)} style={S.menuButton}>
-                ☰
+                ≡
               </button>
             )}
             <div>
               <div style={S.topbarTitle}>Painel Orbit</div>
-              <div style={S.topbarSub}>Rotina, tarefas e projetos em um só fluxo</div>
+              <div style={S.topbarSub}>Rotina, tarefas e projetos em um so fluxo</div>
             </div>
           </div>
 
@@ -211,7 +209,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   }}
                 >
                   <div style={S.bellHead}>
-                    <span style={S.bellTitle}>Notificações</span>
+                    <span style={S.bellTitle}>Notificacoes</span>
                     {unreadCount > 0 && (
                       <button style={S.bellAction} onClick={markAllRead}>
                         Marcar todas como lidas
@@ -221,7 +219,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
                   {recentNotifs.length === 0 ? (
                     <div style={S.bellEmpty}>
-                      {unreadCount === 0 ? 'Nenhuma notificação não lida' : 'Carregando...'}
+                      {unreadCount === 0 ? 'Nenhuma notificacao nao lida' : 'Carregando...'}
                     </div>
                   ) : (
                     recentNotifs.map((n) => (
@@ -297,34 +295,24 @@ const S: Record<string, React.CSSProperties> = {
   },
   orbitMark: {
     position: 'relative',
-    width: 48,
-    height: 48,
-    borderRadius: 16,
-    background: 'rgba(245,242,236,0.04)',
-    border: '1px solid rgba(245,242,236,0.12)',
+    background: 'linear-gradient(135deg, #5A5AE6 0%, #6F70F2 100%)',
+    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.14)',
     flexShrink: 0,
   },
   orbitRing: {
     position: 'absolute',
-    inset: 9,
     borderRadius: '50%',
-    border: '1.8px solid rgba(245,242,236,0.88)',
-    transform: 'rotate(-18deg)',
+    border: '2px solid rgba(255,255,255,0.95)',
   },
   orbitCore: {
     position: 'absolute',
-    inset: 18,
     borderRadius: '50%',
-    background: '#B8924F',
+    background: '#FFFFFF',
   },
   orbitDot: {
     position: 'absolute',
-    top: 9,
-    right: 9,
-    width: 6,
-    height: 6,
     borderRadius: '50%',
-    background: '#F5F2EC',
+    background: '#FFFFFF',
   },
   logoName: {
     fontSize: 24,
@@ -334,34 +322,15 @@ const S: Record<string, React.CSSProperties> = {
   logoSub: {
     marginTop: 4,
     fontSize: 12,
-    color: 'rgba(245,242,236,0.46)',
+    color: 'rgba(245,242,236,0.52)',
   },
   closeButton: {
     border: 'none',
     background: 'transparent',
     color: 'rgba(245,242,236,0.7)',
-    fontSize: 26,
+    fontSize: 24,
     cursor: 'pointer',
     lineHeight: 1,
-  },
-  endorsement: {
-    marginTop: 18,
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: 10,
-    fontSize: 10,
-    letterSpacing: '0.14em',
-    textTransform: 'uppercase',
-    color: 'rgba(245,242,236,0.48)',
-  },
-  endorsementLabel: {},
-  endorsementBrand: {
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: 8,
-    color: '#F5F2EC',
-    fontWeight: 600,
-    letterSpacing: '0.06em',
   },
   nav: {
     flex: 1,
@@ -403,9 +372,9 @@ const S: Record<string, React.CSSProperties> = {
     flexShrink: 0,
   },
   navGlyphActive: {
-    background: 'rgba(184,146,79,0.14)',
-    border: '1px solid rgba(184,146,79,0.24)',
-    color: '#E9D3A9',
+    background: 'rgba(90,90,230,0.16)',
+    border: '1px solid rgba(111,112,242,0.3)',
+    color: '#FFFFFF',
   },
   sidebarBottom: {
     padding: '14px',
@@ -466,6 +435,11 @@ const S: Record<string, React.CSSProperties> = {
     color: 'rgba(245,242,236,0.28)',
     textAlign: 'center',
     paddingTop: 4,
+  },
+  brandFootnote: {
+    fontSize: 10,
+    color: 'rgba(245,242,236,0.38)',
+    textAlign: 'center',
   },
   main: {
     flex: 1,
@@ -582,7 +556,7 @@ const S: Record<string, React.CSSProperties> = {
   bellAction: {
     background: 'transparent',
     border: 'none',
-    color: '#8A6A2F',
+    color: '#5A5AE6',
     fontSize: 12,
     fontWeight: 600,
     cursor: 'pointer',
@@ -615,7 +589,7 @@ const S: Record<string, React.CSSProperties> = {
   bellFooterLink: {
     background: 'transparent',
     border: 'none',
-    color: '#8A6A2F',
+    color: '#5A5AE6',
     fontSize: 13,
     fontWeight: 700,
     cursor: 'pointer',
