@@ -1,11 +1,11 @@
 {
-  "name": "Orbit — Agenda Inteligente",
+  "name": "Orbit — Organização com Estrutura",
   "short_name": "Orbit",
   "description": "Compromissos, tarefas e projetos com notificações em tempo real",
   "start_url": "/dashboard",
   "display": "standalone",
-  "background_color": "#0f172a",
-  "theme_color": "#6366f1",
+  "background_color": "#050B14",
+  "theme_color": "#050B14",
   "orientation": "portrait-primary",
   "icons": [
     {

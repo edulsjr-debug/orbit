@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Orbit — Agenda Inteligente',
+  title: 'Orbit — Organização com Estrutura',
   description: 'Compromissos, tarefas e projetos com notificações em tempo real',
   manifest: '/manifest.json',
   appleWebApp: {
@@ -12,12 +12,15 @@ export const metadata: Metadata = {
   },
   icons: {
     apple: '/apple-touch-icon.png',
-    icon: '/icon-192.png',
+    icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+      { url: '/icon-192.png', sizes: '192x192', type: 'image/png' },
+    ],
   },
 }
 
 export const viewport: Viewport = {
-  themeColor: '#6366f1',
+  themeColor: '#050B14',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
