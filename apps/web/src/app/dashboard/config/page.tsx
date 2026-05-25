@@ -15,6 +15,15 @@ type User = {
 
 const fetcher = (url: string) => api.get<any>(url).then((r: any) => r.data)
 
+function PrumoMark() {
+  return (
+    <svg viewBox="0 0 28 56" width="8" height="16" fill="none" aria-hidden="true">
+      <rect x="6" y="4" width="4" height="48" fill="#050B14" />
+      <rect x="10" y="4" width="12" height="16" fill="#B8924F" />
+    </svg>
+  )
+}
+
 export default function ConfigPage() {
   const { data: user } = useSWR<User>('/auth/me', fetcher)
 
@@ -28,8 +37,9 @@ export default function ConfigPage() {
   const [profileMsg, setProfileMsg] = useState<{ ok: boolean; text: string } | null>(null)
   const [pwMsg, setPwMsg] = useState<{ ok: boolean; text: string } | null>(null)
 
-  // Server status
-  const [serverStatus, setServerStatus] = useState<'checking' | 'online' | 'slow' | 'offline'>('checking')
+  const [serverStatus, setServerStatus] = useState<'checking' | 'online' | 'slow' | 'offline'>(
+    'checking'
+  )
   const [serverMs, setServerMs] = useState<number | null>(null)
 
   useEffect(() => {
@@ -46,13 +56,15 @@ export default function ConfigPage() {
         setServerMs(null)
       }
     }
+
     checkServer()
     const iv = setInterval(checkServer, 30_000)
     return () => clearInterval(iv)
   }, [])
 
-  // Push state
-  const [pushStatus, setPushStatus] = useState<'loading' | 'unsupported' | 'denied' | 'active' | 'inactive'>('loading')
+  const [pushStatus, setPushStatus] = useState<
+    'loading' | 'unsupported' | 'denied' | 'active' | 'inactive'
+  >('loading')
   const [pushMsg, setPushMsg] = useState<{ ok: boolean; text: string } | null>(null)
   const [pushBusy, setPushBusy] = useState(false)
 
@@ -65,12 +77,19 @@ export default function ConfigPage() {
 
   useEffect(() => {
     async function checkPush() {
-      if (typeof window === 'undefined' || !('serviceWorker' in navigator) || !('PushManager' in window)) {
+      if (
+        typeof window === 'undefined' ||
+        !('serviceWorker' in navigator) ||
+        !('PushManager' in window)
+      ) {
         setPushStatus('unsupported')
         return
       }
       const perm = Notification.permission
-      if (perm === 'denied') { setPushStatus('denied'); return }
+      if (perm === 'denied') {
+        setPushStatus('denied')
+        return
+      }
 
       const reg = await navigator.serviceWorker.ready
       const sub = await reg.pushManager.getSubscription()
@@ -85,7 +104,7 @@ export default function ConfigPage() {
     try {
       await api.patch('/auth/me', { name, phone: phone || undefined })
       mutate('/auth/me')
-      setProfileMsg({ ok: true, text: '✓ Perfil atualizado com sucesso' })
+      setProfileMsg({ ok: true, text: 'Perfil atualizado com sucesso.' })
     } catch (e: any) {
       setProfileMsg({ ok: false, text: e.message })
     } finally {
@@ -94,14 +113,22 @@ export default function ConfigPage() {
   }
 
   async function savePassword() {
-    if (pwNew !== pwConfirm) { setPwMsg({ ok: false, text: 'As senhas não coincidem' }); return }
-    if (pwNew.length < 6) { setPwMsg({ ok: false, text: 'A nova senha deve ter pelo menos 6 caracteres' }); return }
+    if (pwNew !== pwConfirm) {
+      setPwMsg({ ok: false, text: 'As senhas não coincidem.' })
+      return
+    }
+    if (pwNew.length < 6) {
+      setPwMsg({ ok: false, text: 'A nova senha deve ter pelo menos 6 caracteres.' })
+      return
+    }
     setSavingPw(true)
     setPwMsg(null)
     try {
       await api.patch('/auth/me', { password: pwNew, currentPassword: pwCurrent })
-      setPwCurrent(''); setPwNew(''); setPwConfirm('')
-      setPwMsg({ ok: true, text: '✓ Senha alterada com sucesso' })
+      setPwCurrent('')
+      setPwNew('')
+      setPwConfirm('')
+      setPwMsg({ ok: true, text: 'Senha alterada com sucesso.' })
     } catch (e: any) {
       setPwMsg({ ok: false, text: e.message })
     } finally {
@@ -115,10 +142,10 @@ export default function ConfigPage() {
     try {
       const vapidRes = await fetch('/api/push/vapid-key', { credentials: 'include' })
       const { publicKey } = await vapidRes.json()
-      if (!publicKey) throw new Error('Chave VAPID não disponível')
+      if (!publicKey) throw new Error('Chave VAPID não disponível.')
 
       const subscription = await subscribePush(publicKey)
-      if (!subscription) throw new Error('Permissão negada ou navegador não suporta push')
+      if (!subscription) throw new Error('Permissão negada ou navegador sem suporte.')
 
       await fetch('/api/push/subscribe', {
         method: 'POST',
@@ -128,12 +155,11 @@ export default function ConfigPage() {
       })
 
       setPushStatus('active')
-      setPushMsg({ ok: true, text: '✓ Notificações ativadas com sucesso!' })
+      setPushMsg({ ok: true, text: 'Notificações ativadas com sucesso.' })
 
-      // Envia push de teste para confirmar
       await fetch('/api/notifications/push-test', { method: 'POST', credentials: 'include' })
     } catch (e: any) {
-      setPushMsg({ ok: false, text: e.message ?? 'Erro ao ativar notificações' })
+      setPushMsg({ ok: false, text: e.message ?? 'Erro ao ativar notificações.' })
     } finally {
       setPushBusy(false)
     }
@@ -145,7 +171,7 @@ export default function ConfigPage() {
       await unsubscribePush()
       await fetch('/api/push/subscribe', { method: 'DELETE', credentials: 'include' })
       setPushStatus('inactive')
-      setPushMsg({ ok: true, text: 'Notificações desativadas' })
+      setPushMsg({ ok: true, text: 'Notificações desativadas.' })
     } catch (e: any) {
       setPushMsg({ ok: false, text: e.message })
     } finally {
@@ -154,144 +180,233 @@ export default function ConfigPage() {
   }
 
   const pushLabels: Record<string, string> = {
-    loading: 'Verificando...',
-    unsupported: 'Não suportado neste navegador',
-    denied: 'Bloqueado — libere nas configurações do navegador',
-    active: '🟢 Notificações ativas',
-    inactive: '⚪ Notificações desativadas',
+    loading: 'Verificando',
+    unsupported: 'Sem suporte neste navegador',
+    denied: 'Bloqueado no navegador',
+    active: 'Ativo',
+    inactive: 'Desativado',
   }
 
   return (
-    <div style={{ maxWidth: 600 }}>
-      <div style={{ marginBottom: 24 }}>
-        <h2 style={S.title}>Configurações</h2>
-        <p style={S.sub}>Gerencie seu perfil e preferências</p>
-      </div>
+    <div>
+      <section style={S.hero}>
+        <div>
+          <div style={S.eyebrow}>Conta e preferências</div>
+          <h1 style={S.title}>Configurações do Orbit.</h1>
+          <p style={S.sub}>
+            Ajuste perfil, segurança e notificações mantendo o produto alinhado ao seu fluxo.
+          </p>
+        </div>
 
-      {/* Perfil */}
-      <div style={S.section}>
-        <div style={S.sectionTitle}>👤 Perfil</div>
-        <div style={S.avatarRow}>
-          <div style={S.avatar}>{user?.name?.[0]?.toUpperCase() ?? '?'}</div>
-          <div>
-            <div style={{ fontWeight: 700, fontSize: 16 }}>{user?.name}</div>
-            <div style={{ fontSize: 13, color: '#64748b' }}>{user?.email}</div>
-          </div>
+        <div style={S.endorsement}>
+          <span>Orbit, um produto</span>
+          <span style={S.endorsementBrand}>
+            <PrumoMark />
+            Prumo
+          </span>
         </div>
-        <Field label="Nome">
-          <input style={S.input} value={name} onChange={(e) => setName(e.target.value)} />
-        </Field>
-        <Field label="Telefone">
-          <input style={S.input} value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+55 51 99999-9999" />
-        </Field>
-        <Field label="E-mail">
-          <input style={{ ...S.input, background: '#f8fafc', color: '#94a3b8' }} value={user?.email ?? ''} disabled />
-        </Field>
-        {profileMsg && (
-          <div style={{ ...S.msg, color: profileMsg.ok ? '#16a34a' : '#dc2626', background: profileMsg.ok ? '#f0fdf4' : '#fef2f2' }}>
-            {profileMsg.text}
-          </div>
-        )}
-        <button style={S.btn} onClick={saveProfile} disabled={savingProfile || !name}>
-          {savingProfile ? 'Salvando...' : 'Salvar perfil'}
-        </button>
-      </div>
+      </section>
 
-      {/* Notificações Push */}
-      <div style={S.section}>
-        <div style={S.sectionTitle}>🔔 Notificações push</div>
-        <div style={{ fontSize: 13, color: '#64748b', marginBottom: 14 }}>
-          Receba alertas de compromissos diretamente no navegador.
-        </div>
-        <div style={{ fontSize: 13, marginBottom: 16, color: '#374151' }}>
-          Status: <strong>{pushLabels[pushStatus]}</strong>
-        </div>
-        {pushMsg && (
-          <div style={{ ...S.msg, color: pushMsg.ok ? '#16a34a' : '#dc2626', background: pushMsg.ok ? '#f0fdf4' : '#fef2f2', marginBottom: 14 }}>
-            {pushMsg.text}
+      <div style={S.grid}>
+        <section style={S.card}>
+          <div style={S.cardHead}>
+            <div>
+              <div style={S.cardTitle}>Perfil</div>
+              <div style={S.cardSub}>Dados básicos da conta</div>
+            </div>
           </div>
-        )}
-        {pushStatus === 'inactive' && (
-          <button style={S.btn} onClick={enablePush} disabled={pushBusy}>
-            {pushBusy ? 'Ativando...' : 'Ativar notificações'}
-          </button>
-        )}
-        {pushStatus === 'active' && (
-          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-            <button style={S.btn} onClick={enablePush} disabled={pushBusy}>
-              {pushBusy ? 'Testando...' : 'Enviar push de teste'}
-            </button>
-            <button
-              style={{ ...S.btn, background: '#f1f5f9', color: '#64748b' }}
-              onClick={disablePush}
-              disabled={pushBusy}
+
+          <div style={S.avatarRow}>
+            <div style={S.avatar}>{user?.name?.[0]?.toUpperCase() ?? '?'}</div>
+            <div>
+              <div style={S.profileName}>{user?.name}</div>
+              <div style={S.profileEmail}>{user?.email}</div>
+            </div>
+          </div>
+
+          <Field label="Nome">
+            <input style={S.input} value={name} onChange={(e) => setName(e.target.value)} />
+          </Field>
+          <Field label="Telefone">
+            <input
+              style={S.input}
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="+55 51 99999-9999"
+            />
+          </Field>
+          <Field label="E-mail">
+            <input
+              style={{ ...S.input, background: '#F8FAFB', color: '#94A3B8' }}
+              value={user?.email ?? ''}
+              disabled
+            />
+          </Field>
+
+          {profileMsg && (
+            <div
+              style={{
+                ...S.msg,
+                color: profileMsg.ok ? '#0F766E' : '#991B1B',
+                background: profileMsg.ok ? '#F0FDF4' : '#FEF2F2',
+              }}
             >
-              Desativar
+              {profileMsg.text}
+            </div>
+          )}
+
+          <button style={S.btnPrimary} onClick={saveProfile} disabled={savingProfile || !name}>
+            {savingProfile ? 'Salvando...' : 'Salvar perfil'}
+          </button>
+        </section>
+
+        <section style={S.card}>
+          <div style={S.cardHead}>
+            <div>
+              <div style={S.cardTitle}>Notificações push</div>
+              <div style={S.cardSub}>Alertas no navegador e no dispositivo</div>
+            </div>
+          </div>
+
+          <div style={S.statusRow}>
+            <span style={S.statusLabel}>Status</span>
+            <span style={S.statusValue}>{pushLabels[pushStatus]}</span>
+          </div>
+
+          {pushMsg && (
+            <div
+              style={{
+                ...S.msg,
+                color: pushMsg.ok ? '#0F766E' : '#991B1B',
+                background: pushMsg.ok ? '#F0FDF4' : '#FEF2F2',
+              }}
+            >
+              {pushMsg.text}
+            </div>
+          )}
+
+          {pushStatus === 'inactive' && (
+            <button style={S.btnPrimary} onClick={enablePush} disabled={pushBusy}>
+              {pushBusy ? 'Ativando...' : 'Ativar notificações'}
             </button>
-          </div>
-        )}
-        {pushStatus === 'denied' && (
-          <div style={{ fontSize: 12, color: '#dc2626', marginTop: 4 }}>
-            Para reativar: clique no cadeado na barra de endereço → Notificações → Permitir
-          </div>
-        )}
-      </div>
+          )}
 
-      {/* Senha */}
-      <div style={S.section}>
-        <div style={S.sectionTitle}>🔒 Alterar senha</div>
-        <Field label="Senha atual">
-          <input type="password" style={S.input} value={pwCurrent} onChange={(e) => setPwCurrent(e.target.value)} placeholder="••••••••" />
-        </Field>
-        <Field label="Nova senha">
-          <input type="password" style={S.input} value={pwNew} onChange={(e) => setPwNew(e.target.value)} placeholder="Mínimo 6 caracteres" />
-        </Field>
-        <Field label="Confirmar nova senha">
-          <input type="password" style={S.input} value={pwConfirm} onChange={(e) => setPwConfirm(e.target.value)} placeholder="Repita a nova senha" />
-        </Field>
-        {pwMsg && (
-          <div style={{ ...S.msg, color: pwMsg.ok ? '#16a34a' : '#dc2626', background: pwMsg.ok ? '#f0fdf4' : '#fef2f2' }}>
-            {pwMsg.text}
-          </div>
-        )}
-        <button style={S.btn} onClick={savePassword} disabled={savingPw || !pwCurrent || !pwNew}>
-          {savingPw ? 'Salvando...' : 'Alterar senha'}
-        </button>
-      </div>
+          {pushStatus === 'active' && (
+            <div style={S.actionsRow}>
+              <button style={S.btnPrimary} onClick={enablePush} disabled={pushBusy}>
+                {pushBusy ? 'Enviando...' : 'Push de teste'}
+              </button>
+              <button style={S.btnGhost} onClick={disablePush} disabled={pushBusy}>
+                Desativar
+              </button>
+            </div>
+          )}
 
-      {/* Sobre */}
-      <div style={S.section}>
-        <div style={S.sectionTitle}>ℹ️ Informações da conta</div>
-        <div style={S.infoRow}>
-          <span style={{ color: '#64748b', fontSize: 13 }}>Conta criada em</span>
-          <span style={{ fontWeight: 600, fontSize: 13 }}>
-            {user?.createdAt ? new Date(user.createdAt).toLocaleDateString('pt-BR') : '—'}
-          </span>
-        </div>
-        <div style={S.infoRow}>
-          <span style={{ color: '#64748b', fontSize: 13 }}>Versão do Orbit</span>
-          <span style={{ fontWeight: 600, fontSize: 13 }}>1.0.0</span>
-        </div>
-        <div style={{ ...S.infoRow, borderBottom: 'none', alignItems: 'center' }}>
-          <span style={{ color: '#64748b', fontSize: 13 }}>Servidor</span>
-          <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600 }}>
-            <span style={{
-              width: 9, height: 9, borderRadius: '50%', flexShrink: 0,
-              background: serverStatus === 'online' ? '#22c55e'
-                : serverStatus === 'slow' ? '#f59e0b'
-                : serverStatus === 'offline' ? '#ef4444'
-                : '#94a3b8',
-              boxShadow: serverStatus === 'online' ? '0 0 6px #22c55e'
-                : serverStatus === 'slow' ? '0 0 6px #f59e0b'
-                : serverStatus === 'offline' ? '0 0 6px #ef4444'
-                : 'none',
-            }} />
-            {serverStatus === 'checking' && 'Verificando…'}
-            {serverStatus === 'online' && `Online${serverMs ? ` · ${serverMs}ms` : ''}`}
-            {serverStatus === 'slow' && `Acordando… · ${serverMs}ms`}
-            {serverStatus === 'offline' && 'Offline'}
-          </span>
-        </div>
+          {pushStatus === 'denied' && (
+            <div style={S.helpText}>
+              Libere as notificações no navegador para voltar a receber alertas.
+            </div>
+          )}
+        </section>
+
+        <section style={S.card}>
+          <div style={S.cardHead}>
+            <div>
+              <div style={S.cardTitle}>Segurança</div>
+              <div style={S.cardSub}>Atualize sua senha de acesso</div>
+            </div>
+          </div>
+
+          <Field label="Senha atual">
+            <input
+              type="password"
+              style={S.input}
+              value={pwCurrent}
+              onChange={(e) => setPwCurrent(e.target.value)}
+              placeholder="••••••••"
+            />
+          </Field>
+          <Field label="Nova senha">
+            <input
+              type="password"
+              style={S.input}
+              value={pwNew}
+              onChange={(e) => setPwNew(e.target.value)}
+              placeholder="Mínimo 6 caracteres"
+            />
+          </Field>
+          <Field label="Confirmar nova senha">
+            <input
+              type="password"
+              style={S.input}
+              value={pwConfirm}
+              onChange={(e) => setPwConfirm(e.target.value)}
+              placeholder="Repita a nova senha"
+            />
+          </Field>
+
+          {pwMsg && (
+            <div
+              style={{
+                ...S.msg,
+                color: pwMsg.ok ? '#0F766E' : '#991B1B',
+                background: pwMsg.ok ? '#F0FDF4' : '#FEF2F2',
+              }}
+            >
+              {pwMsg.text}
+            </div>
+          )}
+
+          <button
+            style={S.btnPrimary}
+            onClick={savePassword}
+            disabled={savingPw || !pwCurrent || !pwNew}
+          >
+            {savingPw ? 'Salvando...' : 'Alterar senha'}
+          </button>
+        </section>
+
+        <section style={S.card}>
+          <div style={S.cardHead}>
+            <div>
+              <div style={S.cardTitle}>Informações da conta</div>
+              <div style={S.cardSub}>Estado atual do ambiente</div>
+            </div>
+          </div>
+
+          <div style={S.infoRow}>
+            <span style={S.infoLabel}>Conta criada em</span>
+            <span style={S.infoValue}>
+              {user?.createdAt ? new Date(user.createdAt).toLocaleDateString('pt-BR') : '—'}
+            </span>
+          </div>
+          <div style={S.infoRow}>
+            <span style={S.infoLabel}>Versão do Orbit</span>
+            <span style={S.infoValue}>1.0.0</span>
+          </div>
+          <div style={{ ...S.infoRow, borderBottom: 'none' }}>
+            <span style={S.infoLabel}>Servidor</span>
+            <span style={S.serverValue}>
+              <span
+                style={{
+                  ...S.serverDot,
+                  background:
+                    serverStatus === 'online'
+                      ? '#22C55E'
+                      : serverStatus === 'slow'
+                        ? '#B8924F'
+                        : serverStatus === 'offline'
+                          ? '#991B1B'
+                          : '#94A3B8',
+                }}
+              />
+              {serverStatus === 'checking' && 'Verificando...'}
+              {serverStatus === 'online' && `Online${serverMs ? ` · ${serverMs}ms` : ''}`}
+              {serverStatus === 'slow' && `Acordando... · ${serverMs}ms`}
+              {serverStatus === 'offline' && 'Offline'}
+            </span>
+          </div>
+        </section>
       </div>
     </div>
   )
@@ -300,21 +415,226 @@ export default function ConfigPage() {
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div style={{ marginBottom: 14 }}>
-      <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#374151', marginBottom: 5, textTransform: 'uppercase', letterSpacing: '.4px' }}>{label}</label>
+      <label style={S.fieldLabel}>{label}</label>
       {children}
     </div>
   )
 }
 
 const S: Record<string, React.CSSProperties> = {
-  title: { fontSize: 20, fontWeight: 800 },
-  sub: { fontSize: 13, color: '#64748b', marginTop: 2 },
-  section: { background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 14, padding: '20px 22px', marginBottom: 16 },
-  sectionTitle: { fontSize: 15, fontWeight: 700, marginBottom: 16, paddingBottom: 12, borderBottom: '1px solid #f1f5f9' },
-  avatarRow: { display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20, padding: '12px 14px', background: '#f8fafc', borderRadius: 10 },
-  avatar: { width: 48, height: 48, borderRadius: '50%', background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 800, fontSize: 20 },
-  btn: { padding: '10px 20px', background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', color: '#fff', border: 'none', borderRadius: 10, fontWeight: 700, fontSize: 13, cursor: 'pointer', marginTop: 4 },
-  input: { width: '100%', padding: '10px 12px', border: '1.5px solid #e2e8f0', borderRadius: 8, fontSize: 13, outline: 'none', boxSizing: 'border-box' },
-  msg: { padding: '10px 14px', borderRadius: 8, fontSize: 13, marginBottom: 12 },
-  infoRow: { display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f8fafc' },
+  hero: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+    gap: 18,
+    marginBottom: 18,
+    flexWrap: 'wrap',
+  },
+  eyebrow: {
+    fontSize: 11,
+    fontWeight: 700,
+    letterSpacing: '0.14em',
+    textTransform: 'uppercase',
+    color: '#8A6A2F',
+    marginBottom: 10,
+  },
+  title: {
+    fontSize: 'clamp(28px, 4vw, 38px)',
+    fontWeight: 700,
+    letterSpacing: '-0.05em',
+    color: '#050B14',
+  },
+  sub: {
+    marginTop: 10,
+    fontSize: 14,
+    color: '#64748B',
+    lineHeight: 1.7,
+  },
+  endorsement: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: 10,
+    padding: '12px 14px',
+    borderRadius: 999,
+    background: '#FFFFFF',
+    border: '1px solid rgba(5,11,20,0.08)',
+    color: '#64748B',
+    fontSize: 12,
+    fontWeight: 600,
+  },
+  endorsementBrand: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: 8,
+    color: '#050B14',
+    fontWeight: 700,
+  },
+  grid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+    gap: 16,
+  },
+  card: {
+    background: '#FFFFFF',
+    border: '1px solid rgba(5,11,20,0.08)',
+    borderRadius: 24,
+    padding: '20px 22px',
+  },
+  cardHead: {
+    marginBottom: 18,
+    paddingBottom: 14,
+    borderBottom: '1px solid #EDF1F4',
+  },
+  cardTitle: {
+    fontSize: 15,
+    fontWeight: 700,
+    color: '#050B14',
+  },
+  cardSub: {
+    marginTop: 4,
+    fontSize: 12,
+    color: '#64748B',
+  },
+  avatarRow: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 14,
+    marginBottom: 20,
+    padding: '14px 16px',
+    background: '#F8FAFB',
+    borderRadius: 18,
+    border: '1px solid #EDF1F4',
+  },
+  avatar: {
+    width: 52,
+    height: 52,
+    borderRadius: 16,
+    background: 'linear-gradient(135deg, #B8924F 0%, #D4B170 100%)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    color: '#050B14',
+    fontWeight: 800,
+    fontSize: 20,
+  },
+  profileName: {
+    fontWeight: 700,
+    fontSize: 16,
+    color: '#050B14',
+  },
+  profileEmail: {
+    fontSize: 13,
+    color: '#64748B',
+    marginTop: 4,
+  },
+  fieldLabel: {
+    display: 'block',
+    fontSize: 11,
+    fontWeight: 700,
+    color: '#475569',
+    marginBottom: 6,
+    textTransform: 'uppercase',
+    letterSpacing: '0.08em',
+  },
+  input: {
+    width: '100%',
+    padding: '12px 14px',
+    border: '1px solid rgba(5,11,20,0.1)',
+    borderRadius: 14,
+    fontSize: 13,
+    outline: 'none',
+    boxSizing: 'border-box',
+    background: '#FFFFFF',
+    color: '#050B14',
+  },
+  btnPrimary: {
+    padding: '12px 18px',
+    background: 'linear-gradient(135deg, #050B14 0%, #101C2B 100%)',
+    color: '#F5F2EC',
+    border: 'none',
+    borderRadius: 14,
+    fontWeight: 700,
+    fontSize: 13,
+    cursor: 'pointer',
+  },
+  btnGhost: {
+    padding: '12px 18px',
+    background: '#F4F6F8',
+    color: '#475569',
+    border: '1px solid rgba(5,11,20,0.08)',
+    borderRadius: 14,
+    fontWeight: 600,
+    fontSize: 13,
+    cursor: 'pointer',
+  },
+  actionsRow: {
+    display: 'flex',
+    gap: 10,
+    flexWrap: 'wrap',
+  },
+  statusRow: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+    padding: '12px 14px',
+    background: '#F8FAFB',
+    borderRadius: 16,
+    border: '1px solid #EDF1F4',
+  },
+  statusLabel: {
+    fontSize: 12,
+    color: '#64748B',
+    textTransform: 'uppercase',
+    letterSpacing: '0.08em',
+    fontWeight: 700,
+  },
+  statusValue: {
+    fontSize: 13,
+    color: '#050B14',
+    fontWeight: 700,
+  },
+  helpText: {
+    marginTop: 12,
+    fontSize: 12,
+    color: '#991B1B',
+    lineHeight: 1.6,
+  },
+  msg: {
+    padding: '12px 14px',
+    borderRadius: 14,
+    fontSize: 13,
+    marginBottom: 14,
+  },
+  infoRow: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: '12px 0',
+    borderBottom: '1px solid #F3F5F7',
+    gap: 12,
+  },
+  infoLabel: {
+    color: '#64748B',
+    fontSize: 13,
+  },
+  infoValue: {
+    fontWeight: 700,
+    fontSize: 13,
+    color: '#050B14',
+  },
+  serverValue: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 8,
+    fontSize: 13,
+    fontWeight: 700,
+    color: '#050B14',
+  },
+  serverDot: {
+    width: 9,
+    height: 9,
+    borderRadius: '50%',
+    flexShrink: 0,
+  },
 }
