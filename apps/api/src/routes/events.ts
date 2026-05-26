@@ -11,6 +11,7 @@ const eventSchema = z.object({
   durationMinutes: z.number().int().positive().default(60),
   category: z.enum(['trabalho', 'cliente', 'pessoal', 'juridico', 'gestao']).default('trabalho'),
   recurring: z.boolean().default(false),
+  notifInApp: z.boolean().default(true),
   notifPush: z.boolean().default(true),
   notifEmail: z.boolean().default(false),
   notifWhatsapp: z.boolean().default(false),
@@ -23,6 +24,7 @@ const eventHistoryFields = [
   'startAt',
   'durationMinutes',
   'category',
+  'notifInApp',
   'notifPush',
   'notifEmail',
   'notifWhatsapp',
@@ -79,7 +81,7 @@ export async function eventRoutes(app: FastifyInstance) {
   const updateEvent = async (req: any, reply: any) => {
     const { id } = req.params as { id: string }
     const uid = userId(req)
-    const original = await prisma.event.findFirst({ where: { id, userId: uid } })
+    const original = (await prisma.event.findFirst({ where: { id, userId: uid } })) as any
     if (!original) return reply.code(404).send({ error: 'Não encontrado' })
 
     const body = eventSchema.partial().parse(req.body)

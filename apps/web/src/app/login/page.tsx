@@ -263,8 +263,8 @@ const styles: Record<string, React.CSSProperties> = {
   },
   orbitMark: {
     position: 'relative',
-    background: 'linear-gradient(135deg, #5A5AE6 0%, #6F70F2 100%)',
-    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.14)',
+    background: 'linear-gradient(180deg, #050B14 0%, #0E1724 100%)',
+    border: '1px solid rgba(245,242,236,0.12)',
     flexShrink: 0,
   },
   orbitRing: {

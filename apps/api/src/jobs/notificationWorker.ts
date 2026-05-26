@@ -1,11 +1,30 @@
 import { prisma } from '@orbit/database'
 import {
-  sendPushNotification,
-  sendEmailNotification,
   createInAppNotification,
+  sendEmailNotification,
+  sendPushNotification,
 } from '../services/notifications'
 
-const INTERVAL_MS = 60_000 // roda a cada 1 minuto
+const INTERVAL_MS = 60_000
+
+function buildEventNotificationContent(event: {
+  id: string
+  title: string
+  description: string | null
+  location: string | null
+  notifAdvance: number
+}) {
+  const fallback = `Comeca em ${event.notifAdvance} min${event.location ? ` • ${event.location}` : ''}`
+  const body = event.description?.trim() || fallback
+
+  return {
+    title: event.title,
+    body,
+    url: '/dashboard/compromissos',
+    tag: `event-${event.id}`,
+    emailSubject: `Lembrete: ${event.title}`,
+  }
+}
 
 async function processJobs() {
   const now = new Date()
@@ -21,26 +40,37 @@ async function processJobs() {
 
   if (jobs.length === 0) return
 
-  console.log(`[worker] Processando ${jobs.length} job(s) de notificação`)
+  console.log(`[worker] Processando ${jobs.length} job(s) de notificacao`)
 
   for (const job of jobs) {
     const { event } = job
     const user = event.user
-    const title = `Lembrete: ${event.title}`
-    const body = `Começa em ${event.notifAdvance} minuto(s)${event.location ? ` — ${event.location}` : ''}`
+    const content = buildEventNotificationContent(event)
 
     try {
       if (job.channel === 'push') {
-        await sendPushNotification(user.id, title, body)
+        await sendPushNotification(user.id, {
+          title: content.title,
+          body: content.body,
+          url: content.url,
+          tag: content.tag,
+        })
       } else if (job.channel === 'email') {
         await sendEmailNotification(
           user.email,
-          title,
-          `<p>Olá, <strong>${user.name}</strong>!</p><p>${body}</p>`
+          content.emailSubject,
+          `<p>Ola, <strong>${user.name}</strong>!</p><p>${content.body}</p>`
+        )
+      } else if (job.channel === 'in_app') {
+        await createInAppNotification(
+          user.id,
+          content.title,
+          content.body,
+          'in_app',
+          'event',
+          event.id
         )
       }
-
-      await createInAppNotification(user.id, title, body, job.channel, 'event', event.id)
 
       await prisma.notificationJob.update({
         where: { id: job.id },
@@ -57,7 +87,7 @@ async function processJobs() {
 }
 
 export function startNotificationWorker() {
-  processJobs() // roda imediatamente no boot
+  processJobs()
   setInterval(processJobs, INTERVAL_MS)
   console.log('[worker] Notification worker iniciado (intervalo: 1 min)')
 }

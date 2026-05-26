@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
+import { PushSetup } from '@/components/PushSetup'
 
 export const metadata: Metadata = {
   title: 'Orbit — Organização com Estrutura',
@@ -26,7 +27,10 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pt-BR">
-      <body>{children}</body>
+      <body>
+        <PushSetup />
+        {children}
+      </body>
     </html>
   )
 }

@@ -7,16 +7,25 @@ self.addEventListener('push', (event) => {
   const url = payload.url || '/dashboard'
 
   event.waitUntil(
-    self.registration.showNotification(title, {
-      body,
-      icon,
-      badge,
-      sound: '/notification.wav',
-      vibrate: [200, 100, 200],
-      tag: 'orbit-notif',
-      renotify: true,
-      data: { url },
-    })
+    Promise.all([
+      self.registration.showNotification(title, {
+        body,
+        icon,
+        badge,
+        vibrate: [200, 100, 200],
+        tag: 'orbit-notif',
+        renotify: true,
+        data: { url },
+      }),
+      clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+        for (const client of clientList) {
+          client.postMessage({
+            type: 'ORBIT_PUSH_RECEIVED',
+            payload: { title, body, url },
+          })
+        }
+      }),
+    ])
   )
 })
 

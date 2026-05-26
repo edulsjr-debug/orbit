@@ -4,10 +4,18 @@ import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import useSWR, { mutate } from 'swr'
 import { api } from '@/lib/api'
-import { PushSetup } from '@/components/PushSetup'
 
 type User = { id: string; name: string; email: string }
-type Notification = { id: string; title: string; body: string; read: boolean; createdAt: string }
+type Notification = {
+  id: string
+  title: string
+  body: string
+  channel: string
+  read: boolean
+  entityType?: string
+  entityId?: string
+  createdAt: string
+}
 
 const fetcher = (url: string) => api.get<any>(url).then((r: any) => r.data)
 
@@ -22,6 +30,46 @@ const NAV = [
 
 const VERSION = process.env.NEXT_PUBLIC_APP_VERSION ?? '1.0.0'
 const COMMIT = (process.env.NEXT_PUBLIC_COMMIT_SHA ?? 'dev').slice(0, 7)
+const SNOOZE_KEY = 'orbit-toast-snooze'
+
+const ENTITY_LABEL: Record<string, string> = {
+  event: 'Compromisso',
+  task: 'Tarefa',
+  project: 'Projeto',
+}
+
+function timeAgo(date: string) {
+  const diff = Date.now() - new Date(date).getTime()
+  const mins = Math.max(0, Math.floor(diff / 60000))
+  if (mins < 1) return 'agora'
+  if (mins < 60) return `${mins} min`
+  const hours = Math.floor(mins / 60)
+  if (hours < 24) return `${hours} h`
+  return `${Math.floor(hours / 24)} d`
+}
+
+function routeForNotification(notification: Pick<Notification, 'entityType'>) {
+  switch (notification.entityType) {
+    case 'event':
+      return '/dashboard/compromissos'
+    case 'task':
+      return '/dashboard/tarefas'
+    case 'project':
+      return '/dashboard/projetos'
+    default:
+      return '/dashboard/notificacoes'
+  }
+}
+
+function readSnoozed() {
+  if (typeof window === 'undefined') return {} as Record<string, number>
+  try {
+    const raw = window.localStorage.getItem(SNOOZE_KEY)
+    return raw ? (JSON.parse(raw) as Record<string, number>) : {}
+  } catch {
+    return {}
+  }
+}
 
 function OrbitMark({ size = 48 }: { size?: number }) {
   return (
@@ -56,12 +104,18 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const [bellOpen, setBellOpen] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
+  const [snoozed, setSnoozed] = useState<Record<string, number>>({})
+  const [sessionStartedAt] = useState(() => Date.now())
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 980)
     check()
     window.addEventListener('resize', check)
     return () => window.removeEventListener('resize', check)
+  }, [])
+
+  useEffect(() => {
+    setSnoozed(readSnoozed())
   }, [])
 
   useEffect(() => {
@@ -72,6 +126,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const { data: countData } = useSWR('/notifications/unread-count', fetcher, {
     refreshInterval: 30000,
   })
+  const { data: unreadNotifications = [] } = useSWR<Notification[]>(
+    '/notifications?read=false',
+    fetcher,
+    {
+      refreshInterval: 15000,
+    }
+  )
   const { data: notifications = [] } = useSWR<Notification[]>(
     bellOpen ? '/notifications' : null,
     fetcher
@@ -81,6 +142,22 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const firstName = user?.name?.split(' ')[0] ?? '...'
   const initial = user?.name?.[0]?.toUpperCase() ?? '?'
   const recentNotifs = notifications.filter((n) => !n.read).slice(0, 3)
+  const activeToasts = unreadNotifications
+    .filter((notification) => {
+      if (notification.channel !== 'in_app') return false
+      if (new Date(notification.createdAt).getTime() < sessionStartedAt) return false
+      const until = snoozed[notification.id]
+      return !until || until <= Date.now()
+    })
+    .slice(0, isMobile ? 1 : 2)
+
+  async function refreshNotifications() {
+    await Promise.all([
+      mutate('/notifications/unread-count'),
+      mutate('/notifications'),
+      mutate('/notifications?read=false'),
+    ])
+  }
 
   async function logout() {
     await api.post('/auth/logout', {})
@@ -90,16 +167,29 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   async function markAllRead() {
     await api.post('/notifications/read-all', {})
-    mutate('/notifications/unread-count')
-    mutate('/notifications')
+    await refreshNotifications()
+  }
+
+  async function markNotificationRead(id: string) {
+    await api.patch(`/notifications/${id}/read`, {})
+    await refreshNotifications()
+  }
+
+  function snoozeNotification(id: string, minutes: number) {
+    const next = { ...readSnoozed(), [id]: Date.now() + minutes * 60_000 }
+    window.localStorage.setItem(SNOOZE_KEY, JSON.stringify(next))
+    setSnoozed(next)
+  }
+
+  async function openNotification(notification: Notification) {
+    await markNotificationRead(notification.id)
+    router.push(routeForNotification(notification))
   }
 
   const showSidebar = isMobile ? sidebarOpen : true
 
   return (
     <div style={S.page}>
-      <PushSetup />
-
       {isMobile && sidebarOpen && <div onClick={() => setSidebarOpen(false)} style={S.overlay} />}
 
       {showSidebar && (
@@ -178,6 +268,48 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       )}
 
       <div style={S.main}>
+        {activeToasts.length > 0 && (
+          <div style={{ ...S.toastStack, ...(isMobile ? S.toastStackMobile : null) }}>
+            {activeToasts.map((notification) => (
+              <div key={notification.id} style={S.toastCard}>
+                <div style={S.toastGlow} />
+                <div style={S.toastHead}>
+                  <span style={S.toastEyebrow}>
+                    {ENTITY_LABEL[notification.entityType ?? ''] ?? 'Alerta'}
+                  </span>
+                  <span style={S.toastTime}>{timeAgo(notification.createdAt)}</span>
+                </div>
+                <div style={S.toastTitle}>{notification.title}</div>
+                <div style={S.toastBody}>{notification.body}</div>
+                <div style={S.toastActions}>
+                  <button
+                    style={S.toastPrimary}
+                    onClick={() => {
+                      void openNotification(notification)
+                    }}
+                  >
+                    Abrir
+                  </button>
+                  <button
+                    style={S.toastSecondary}
+                    onClick={() => snoozeNotification(notification.id, 5)}
+                  >
+                    Adiar 5 min
+                  </button>
+                  <button
+                    style={S.toastGhost}
+                    onClick={() => {
+                      void markNotificationRead(notification.id)
+                    }}
+                  >
+                    Marcar lida
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
         <header style={S.topbar}>
           <div style={S.topbarLeft}>
             {isMobile && (
@@ -211,7 +343,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   <div style={S.bellHead}>
                     <span style={S.bellTitle}>Notificacoes</span>
                     {unreadCount > 0 && (
-                      <button style={S.bellAction} onClick={markAllRead}>
+                      <button style={S.bellAction} onClick={() => void markAllRead()}>
                         Marcar todas como lidas
                       </button>
                     )}
@@ -222,11 +354,18 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                       {unreadCount === 0 ? 'Nenhuma notificacao nao lida' : 'Carregando...'}
                     </div>
                   ) : (
-                    recentNotifs.map((n) => (
-                      <div key={n.id} style={S.notificationItem}>
-                        <div style={S.notificationTitle}>{n.title}</div>
-                        <div style={S.notificationBody}>{n.body}</div>
-                      </div>
+                    recentNotifs.map((notification) => (
+                      <button
+                        key={notification.id}
+                        style={S.notificationItem}
+                        onClick={() => {
+                          setBellOpen(false)
+                          void openNotification(notification)
+                        }}
+                      >
+                        <div style={S.notificationTitle}>{notification.title}</div>
+                        <div style={S.notificationBody}>{notification.body}</div>
+                      </button>
                     ))
                   )}
 
@@ -295,8 +434,8 @@ const S: Record<string, React.CSSProperties> = {
   },
   orbitMark: {
     position: 'relative',
-    background: 'linear-gradient(135deg, #5A5AE6 0%, #6F70F2 100%)',
-    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.14)',
+    background: 'linear-gradient(180deg, #050B14 0%, #0E1724 100%)',
+    border: '1px solid rgba(245,242,236,0.12)',
     flexShrink: 0,
   },
   orbitRing: {
@@ -446,6 +585,108 @@ const S: Record<string, React.CSSProperties> = {
     display: 'flex',
     flexDirection: 'column',
     minWidth: 0,
+    position: 'relative',
+  },
+  toastStack: {
+    position: 'fixed',
+    top: 92,
+    right: 26,
+    zIndex: 120,
+    display: 'grid',
+    gap: 12,
+    width: 360,
+    pointerEvents: 'none',
+  },
+  toastStackMobile: {
+    top: 84,
+    right: 12,
+    left: 12,
+    width: 'auto',
+  },
+  toastCard: {
+    position: 'relative',
+    overflow: 'hidden',
+    background: 'rgba(255,251,243,0.98)',
+    border: '1px solid rgba(184,146,79,0.26)',
+    borderRadius: 22,
+    boxShadow: '0 22px 40px rgba(5,11,20,0.16)',
+    padding: '16px 16px 14px',
+    backdropFilter: 'blur(14px)',
+    pointerEvents: 'auto',
+  },
+  toastGlow: {
+    position: 'absolute',
+    inset: 0,
+    background: 'radial-gradient(circle at top right, rgba(212,177,112,0.25), transparent 42%)',
+    pointerEvents: 'none',
+  },
+  toastHead: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+    marginBottom: 10,
+  },
+  toastEyebrow: {
+    fontSize: 11,
+    fontWeight: 800,
+    letterSpacing: '0.12em',
+    textTransform: 'uppercase',
+    color: '#8A6A2F',
+  },
+  toastTime: {
+    fontSize: 11,
+    color: '#667085',
+    fontWeight: 600,
+  },
+  toastTitle: {
+    fontSize: 18,
+    lineHeight: 1.2,
+    fontWeight: 700,
+    color: '#101828',
+    marginBottom: 6,
+    letterSpacing: '-0.03em',
+  },
+  toastBody: {
+    fontSize: 13,
+    lineHeight: 1.6,
+    color: '#475467',
+    marginBottom: 14,
+  },
+  toastActions: {
+    display: 'flex',
+    gap: 8,
+    flexWrap: 'wrap',
+  },
+  toastPrimary: {
+    padding: '10px 14px',
+    borderRadius: 12,
+    border: 'none',
+    background: '#111827',
+    color: '#F9FAFB',
+    fontSize: 12,
+    fontWeight: 700,
+    cursor: 'pointer',
+  },
+  toastSecondary: {
+    padding: '10px 14px',
+    borderRadius: 12,
+    border: '1px solid rgba(184,146,79,0.28)',
+    background: '#F7EEDC',
+    color: '#7C5B20',
+    fontSize: 12,
+    fontWeight: 700,
+    cursor: 'pointer',
+  },
+  toastGhost: {
+    padding: '10px 14px',
+    borderRadius: 12,
+    border: '1px solid rgba(5,11,20,0.08)',
+    background: '#FFFFFF',
+    color: '#475467',
+    fontSize: 12,
+    fontWeight: 700,
+    cursor: 'pointer',
   },
   topbar: {
     height: 78,
@@ -568,8 +809,15 @@ const S: Record<string, React.CSSProperties> = {
     fontSize: 13,
   },
   notificationItem: {
+    width: '100%',
     padding: '14px 18px',
     borderBottom: '1px solid #F3F5F7',
+    borderTop: 'none',
+    borderLeft: 'none',
+    borderRight: 'none',
+    background: 'transparent',
+    textAlign: 'left',
+    cursor: 'pointer',
   },
   notificationTitle: {
     fontSize: 13,

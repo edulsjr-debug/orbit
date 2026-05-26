@@ -34,6 +34,7 @@ model Event {
   durationMinutes Int      @default(60)
   category        String   @default("trabalho")
   recurring       Boolean  @default(false)
+  notifInApp      Boolean  @default(true)
   notifPush       Boolean  @default(true)
   notifEmail      Boolean  @default(false)
   notifWhatsapp   Boolean  @default(false)

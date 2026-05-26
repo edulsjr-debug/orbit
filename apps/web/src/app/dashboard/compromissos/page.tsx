@@ -18,6 +18,7 @@ type EventItem = {
   durationMinutes: number
   category: 'trabalho' | 'cliente' | 'pessoal' | 'juridico' | 'gestao'
   recurring?: boolean
+  notifInApp: boolean
   notifPush: boolean
   notifEmail: boolean
   notifWhatsapp?: boolean
@@ -41,6 +42,7 @@ type EventFormState = {
   category: EventItem['category']
   location: string
   description: string
+  notifInApp: boolean
   notifPush: boolean
   notifEmail: boolean
   notifAdvance: number
@@ -122,6 +124,7 @@ function defaultFormState(date: Date): EventFormState {
     category: 'trabalho',
     location: '',
     description: '',
+    notifInApp: true,
     notifPush: true,
     notifEmail: false,
     notifAdvance: 30,
@@ -136,6 +139,7 @@ function eventToFormState(event: EventItem): EventFormState {
     category: event.category,
     location: event.location ?? '',
     description: event.description ?? '',
+    notifInApp: event.notifInApp,
     notifPush: event.notifPush,
     notifEmail: event.notifEmail,
     notifAdvance: event.notifAdvance,
@@ -262,6 +266,7 @@ export default function CompromissosPage() {
         category: form.category,
         location: form.location || undefined,
         description: form.description || undefined,
+        notifInApp: form.notifInApp,
         notifPush: form.notifPush,
         notifEmail: form.notifEmail,
         notifWhatsapp: false,
@@ -350,7 +355,41 @@ export default function CompromissosPage() {
       </div>
 
       {view === 'mes' && (
-        <div style={S.fadeIn}>
+        <div style={{ ...S.fadeIn, ...S.monthLayout, ...(isMobile ? S.monthLayoutMobile : null) }}>
+          <div style={{ ...S.panelCard, ...S.agendaCard }}>
+            <div style={S.panelHeader}>
+              <div style={S.agendaHeaderBlock}>
+                <div style={S.agendaEyebrow}>Agenda selecionada</div>
+                <div style={S.agendaDatePill}>
+                  <span style={S.agendaDateDay}>{selectedDate.getDate()}</span>
+                  <span style={S.agendaDateMonth}>
+                    {selectedDate.toLocaleDateString('pt-BR', { month: 'short' })}
+                  </span>
+                </div>
+                <h4 style={S.panelTitle}>{selectedDate.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}</h4>
+              </div>
+              <button type="button" style={S.secondaryButton} onClick={() => openCreateModal(selectedDate)}>Adicionar</button>
+            </div>
+
+            {isLoading ? (
+              <div style={S.emptyState}>Carregando compromissos...</div>
+            ) : selectedEvents.length === 0 ? (
+              <div style={S.emptyState}>Nenhum compromisso neste dia.</div>
+            ) : density === 'detailed' ? (
+              <div style={{ ...S.verticalList, ...S.agendaListMonth }}>
+                {selectedEvents.map((event) => (
+                  <AgendaTimelineCard key={event.id} event={event} onClick={() => openEditModal(event)} />
+                ))}
+              </div>
+            ) : (
+              <div style={{ ...S.verticalList, ...S.agendaListMonth }}>
+                {selectedEvents.map((event) => (
+                  <CompactEventRow key={event.id} event={event} onClick={() => openEditModal(event)} />
+                ))}
+              </div>
+            )}
+          </div>
+
           <div style={{ ...S.calendarCard, ...(isMobile ? S.calendarCardMobile : null) }}>
             <div style={S.calendarNav}>
               <button type="button" style={S.iconButton} onClick={() => setMonthCursor(new Date(monthCursor.getFullYear(), monthCursor.getMonth() - 1, 1))}>‹</button>
@@ -393,30 +432,6 @@ export default function CompromissosPage() {
             </div>
           </div>
 
-          <div style={S.panelCard}>
-            <div style={S.panelHeader}>
-              <h4 style={S.panelTitle}>{selectedDate.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}</h4>
-              <button type="button" style={S.secondaryButton} onClick={() => openCreateModal(selectedDate)}>Adicionar</button>
-            </div>
-
-            {isLoading ? (
-              <div style={S.emptyState}>Carregando compromissos...</div>
-            ) : selectedEvents.length === 0 ? (
-              <div style={S.emptyState}>Nenhum compromisso neste dia.</div>
-            ) : density === 'detailed' ? (
-              <div style={S.verticalList}>
-                {selectedEvents.map((event) => (
-                  <EventCard key={event.id} event={event} onClick={() => openEditModal(event)} />
-                ))}
-              </div>
-            ) : (
-              <div style={S.verticalList}>
-                {selectedEvents.map((event) => (
-                  <CompactEventRow key={event.id} event={event} onClick={() => openEditModal(event)} />
-                ))}
-              </div>
-            )}
-          </div>
         </div>
       )}
 
@@ -540,6 +555,10 @@ export default function CompromissosPage() {
                 <div style={S.notificationBlock}>
                   <div style={S.notificationTitle}>Notificações</div>
                   <div style={S.toggleRow}>
+                    <span>Na tela do Orbit</span>
+                    <Toggle checked={form.notifInApp} onChange={() => setForm((current) => ({ ...current, notifInApp: !current.notifInApp }))} />
+                  </div>
+                  <div style={S.toggleRow}>
                     <span>Push no navegador</span>
                     <Toggle checked={form.notifPush} onChange={() => setForm((current) => ({ ...current, notifPush: !current.notifPush }))} />
                   </div>
@@ -635,9 +654,43 @@ function EventCard({ event, onClick }: { event: EventItem; onClick: () => void }
           {event.hasHistory ? <span style={S.editedPill}>✏</span> : null}
         </div>
         <div style={S.notificationRow}>
+          {event.notifInApp ? <span>🖥️</span> : null}
           {event.notifPush ? <span>🔔</span> : null}
           {event.notifEmail ? <span>✉️</span> : null}
           {event.notifWhatsapp ? <span>💬</span> : null}
+        </div>
+      </div>
+    </button>
+  )
+}
+
+function AgendaTimelineCard({ event, onClick }: { event: EventItem; onClick: () => void }) {
+  return (
+    <button type="button" onClick={onClick} style={{ ...S.agendaTimelineCard, ...(event.hasHistory ? S.eventCardHistory : null) }}>
+      <div style={S.agendaTimelineRail}>
+        <div style={{ ...S.agendaTimelineDot, background: CATEGORY_COLORS[event.category] }} />
+      </div>
+
+      <div style={S.agendaTimelineTimeBlock}>
+        <div style={S.agendaTimelineTime}>
+          {new Date(event.startAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+        </div>
+        <div style={S.agendaTimelineDuration}>{event.durationMinutes} min</div>
+      </div>
+
+      <div style={S.agendaTimelineContent}>
+        <div style={S.agendaTimelineTop}>
+          <div style={S.eventTitle}>{event.title}</div>
+          <span style={S.metaPill}>{CATEGORY_LABELS[event.category]}</span>
+        </div>
+        <div style={S.eventSub}>{event.location || 'Sem local definido'}</div>
+        {event.description ? <div style={S.agendaTimelineDescription}>{event.description}</div> : null}
+        <div style={S.notificationRow}>
+          {event.notifInApp ? <span>🖥️</span> : null}
+          {event.notifPush ? <span>🔔</span> : null}
+          {event.notifEmail ? <span>✉️</span> : null}
+          {event.notifWhatsapp ? <span>💬</span> : null}
+          {event.hasHistory ? <span style={S.editedPill}>✏</span> : null}
         </div>
       </div>
     </button>
@@ -668,26 +721,44 @@ const S: Record<string, React.CSSProperties> = {
   secondaryButton: { border: '1px solid rgba(5,11,20,0.08)', background: '#fff', color: '#374151', borderRadius: 14, padding: '10px 14px', fontSize: 13, fontWeight: 600, cursor: 'pointer' },
   deleteButton: { border: '1px solid rgba(153,27,27,0.14)', background: '#fff1f2', color: '#991b1b', borderRadius: 14, padding: '10px 14px', fontSize: 13, fontWeight: 700, cursor: 'pointer' },
   iconButton: { width: 38, height: 38, border: '1px solid rgba(5,11,20,0.08)', background: '#fff', borderRadius: 12, fontSize: 18, cursor: 'pointer' },
-  calendarCard: { background: '#fff', borderRadius: 24, border: '1px solid rgba(5,11,20,0.08)', overflow: 'hidden', marginBottom: 16 },
+  monthLayout: { display: 'grid', gridTemplateColumns: 'minmax(350px, 0.88fr) minmax(560px, 1.32fr)', gap: 16, alignItems: 'stretch' },
+  monthLayoutMobile: { gridTemplateColumns: '1fr' },
+  calendarCard: { background: '#fff', borderRadius: 24, border: '1px solid rgba(5,11,20,0.08)', overflow: 'hidden', marginBottom: 16, minHeight: 100 },
   calendarCardMobile: { overflowX: 'auto' },
-  calendarNav: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 18px', borderBottom: '1px solid #edf1f4' },
+  calendarNav: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', borderBottom: '1px solid #edf1f4' },
   calendarTitle: { fontSize: 15, fontWeight: 800, textTransform: 'capitalize' },
   weekHeader: { display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)' },
   weekHeaderMobile: { minWidth: 560 },
-  weekHeaderCell: { textAlign: 'center', padding: '10px 6px', fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', borderBottom: '1px solid #f8fafc' },
+  weekHeaderCell: { textAlign: 'center', padding: '8px 6px', fontSize: 10, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', borderBottom: '1px solid #f8fafc' },
   calendarGrid: { display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)' },
   calendarGridMobile: { minWidth: 560 },
-  dayCell: { minHeight: 78, border: 'none', borderTop: '1px solid #f8fafc', borderRight: '1px solid #f8fafc', background: '#fff', padding: 8, cursor: 'pointer' },
+  dayCell: { minHeight: 64, border: 'none', borderTop: '1px solid #f8fafc', borderRight: '1px solid #f8fafc', background: '#fff', padding: 6, cursor: 'pointer' },
   dayCellMuted: { background: '#fcfcfd', color: '#cbd5e1' },
-  dayCellSelected: { background: '#fbf4e4' },
-  dayNumber: { width: 28, height: 28, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto', fontSize: 13, fontWeight: 700, color: '#0f172a' },
+  dayCellSelected: { background: '#f7efe0', boxShadow: 'inset 0 0 0 1px rgba(184,146,79,0.18)' },
+  dayNumber: { width: 26, height: 26, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto', fontSize: 12, fontWeight: 700, color: '#0f172a' },
   dayNumberToday: { background: '#050b14', color: '#fff' },
-  dayDots: { display: 'flex', justifyContent: 'center', gap: 4, marginTop: 6 },
-  dot: { width: 6, height: 6, borderRadius: '50%' },
+  dayDots: { display: 'flex', justifyContent: 'center', gap: 4, marginTop: 4 },
+  dot: { width: 5, height: 5, borderRadius: '50%' },
   panelCard: { background: '#fff', borderRadius: 24, border: '1px solid rgba(5,11,20,0.08)', padding: '18px 20px' },
+  agendaCard: { minHeight: 100, marginBottom: 0, display: 'flex', flexDirection: 'column', background: 'linear-gradient(180deg, #ffffff 0%, #fbfcfd 100%)' },
+  agendaHeaderBlock: { display: 'grid', gap: 8 },
+  agendaEyebrow: { fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#8a6a2f', marginBottom: 6 },
+  agendaDatePill: { display: 'inline-flex', alignItems: 'baseline', gap: 8, width: 'fit-content', padding: '8px 12px', borderRadius: 999, background: '#fbf4e4', color: '#8a6a2f', border: '1px solid rgba(184,146,79,0.14)' },
+  agendaDateDay: { fontSize: 24, lineHeight: 1, fontWeight: 800, color: '#111827' },
+  agendaDateMonth: { fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' },
+  agendaListMonth: { maxHeight: 430, overflowY: 'auto', paddingRight: 4 },
   panelHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, marginBottom: 14, flexWrap: 'wrap' },
   panelTitle: { fontSize: 14, fontWeight: 800, textTransform: 'capitalize' },
   verticalList: { display: 'flex', flexDirection: 'column', gap: 10 },
+  agendaTimelineCard: { width: '100%', display: 'grid', gridTemplateColumns: '12px 64px 1fr', gap: 12, alignItems: 'start', border: '1px solid rgba(5,11,20,0.08)', borderRadius: 18, background: '#ffffff', padding: '14px 16px', cursor: 'pointer', boxShadow: '0 10px 20px rgba(5,11,20,0.04)' },
+  agendaTimelineRail: { position: 'relative', width: 12, alignSelf: 'stretch' },
+  agendaTimelineDot: { width: 12, height: 12, borderRadius: '50%', marginTop: 6, boxShadow: '0 0 0 4px rgba(184,146,79,0.14)' },
+  agendaTimelineTimeBlock: { paddingTop: 2, textAlign: 'left' },
+  agendaTimelineTime: { fontSize: 18, fontWeight: 800, letterSpacing: '-0.03em', color: '#111827' },
+  agendaTimelineDuration: { fontSize: 11, color: '#94a3b8', marginTop: 3 },
+  agendaTimelineContent: { minWidth: 0, textAlign: 'left' },
+  agendaTimelineTop: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 4, flexWrap: 'wrap' },
+  agendaTimelineDescription: { marginTop: 8, fontSize: 12, lineHeight: 1.6, color: '#475569' },
   eventCard: { width: '100%', display: 'flex', gap: 12, alignItems: 'flex-start', border: '1px solid rgba(5,11,20,0.08)', borderRadius: 18, background: '#fbfcfd', padding: '14px 16px', cursor: 'pointer' },
   eventCardHistory: { borderLeft: '3px solid #f59e0b' },
   eventBar: { width: 3, minHeight: 44, borderRadius: 3, flexShrink: 0 },

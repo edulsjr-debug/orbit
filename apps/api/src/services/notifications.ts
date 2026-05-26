@@ -1,11 +1,26 @@
 import { prisma } from '@orbit/database'
 import { Resend } from 'resend'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+export type PushPayload = {
+  title: string
+  body: string
+  url?: string
+  tag?: string
+  icon?: string
+  badge?: string
+}
 
-// Agenda jobs de notificação para um compromisso
+function getResendClient() {
+  if (!process.env.RESEND_API_KEY) {
+    throw new Error('RESEND_API_KEY nao configurada.')
+  }
+
+  return new Resend(process.env.RESEND_API_KEY)
+}
+
 export async function scheduleEventNotifications(event: any) {
   const channels: string[] = []
+  if (event.notifInApp) channels.push('in_app')
   if (event.notifPush) channels.push('push')
   if (event.notifEmail) channels.push('email')
   if (event.notifWhatsapp) channels.push('whatsapp')
@@ -25,7 +40,6 @@ export async function scheduleEventNotifications(event: any) {
   })
 }
 
-// Cancela jobs pendentes de um compromisso
 export async function cancelEventNotifications(eventId: any) {
   await prisma.notificationJob.updateMany({
     where: { eventId, status: 'pending' },
@@ -33,32 +47,48 @@ export async function cancelEventNotifications(eventId: any) {
   })
 }
 
-// Envia push notification via Web Push API
-export async function sendPushNotification(userId: string, title: string, body: string) {
+export async function sendPushNotification(userId: string, payload: PushPayload) {
   const user = await prisma.user.findUnique({
     where: { id: userId },
     select: { pushSub: true },
   })
   if (!user?.pushSub) return
 
+  if (!process.env.VAPID_PUBLIC_KEY || !process.env.VAPID_PRIVATE_KEY) {
+    throw new Error('VAPID_PUBLIC_KEY/VAPID_PRIVATE_KEY nao configuradas.')
+  }
+
+  const subscription = JSON.parse(user.pushSub)
+  const webpushModule = await import('web-push')
+  const webpush = ('default' in webpushModule ? webpushModule.default : webpushModule) as {
+    setVapidDetails: (subject: string, publicKey: string, privateKey: string) => void
+    sendNotification: (subscription: unknown, body?: string) => Promise<unknown>
+  }
+
+  webpush.setVapidDetails(
+    'mailto:' + (process.env.VAPID_EMAIL ?? 'admin@orbit.app'),
+    process.env.VAPID_PUBLIC_KEY,
+    process.env.VAPID_PRIVATE_KEY
+  )
+
   try {
-    const webpush = await import('web-push')
-    webpush.setVapidDetails(
-      'mailto:' + (process.env.VAPID_EMAIL ?? 'admin@orbit.app'),
-      process.env.VAPID_PUBLIC_KEY ?? '',
-      process.env.VAPID_PRIVATE_KEY ?? ''
-    )
-    await webpush.sendNotification(
-      JSON.parse(user.pushSub),
-      JSON.stringify({ title, body })
-    )
-  } catch (err) {
+    await webpush.sendNotification(subscription, JSON.stringify(payload))
+  } catch (err: any) {
+    if (err?.statusCode === 404 || err?.statusCode === 410) {
+      await prisma.user.update({
+        where: { id: userId },
+        data: { pushSub: null },
+      })
+    }
+
     console.error('Falha ao enviar push:', err)
+    throw err
   }
 }
 
 export async function sendEmail(to: string, subject: string, html: string) {
   try {
+    const resend = getResendClient()
     await resend.emails.send({
       from: 'Orbit <notificacoes@orbit.app>',
       to,
@@ -70,12 +100,10 @@ export async function sendEmail(to: string, subject: string, html: string) {
   }
 }
 
-// Envia email via Resend
 export async function sendEmailNotification(email: string, subject: string, html: string) {
   await sendEmail(email, subject, html)
 }
 
-// Salva notificação no banco (sininho interno)
 export async function createInAppNotification(
   userId: string,
   title: string,

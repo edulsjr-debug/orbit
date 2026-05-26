@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import useSWR, { mutate } from 'swr'
 import { api } from '@/lib/api'
-import { subscribePush, unsubscribePush } from '@/lib/push'
+import { registerSW, subscribePush, unsubscribePush } from '@/lib/push'
 import { useIsMobile } from '@/lib/use-mobile'
 
 type User = {
@@ -93,6 +93,7 @@ export default function ConfigPage() {
         return
       }
 
+      await registerSW()
       const reg = await navigator.serviceWorker.ready
       const sub = await reg.pushManager.getSubscription()
       setPushStatus(sub ? 'active' : 'inactive')
@@ -142,24 +143,38 @@ export default function ConfigPage() {
     setPushBusy(true)
     setPushMsg(null)
     try {
+      await registerSW()
+
       const vapidRes = await fetch('/api/push/vapid-key', { credentials: 'include' })
+      if (!vapidRes.ok) throw new Error('Não foi possível carregar a chave de notificações.')
       const { publicKey } = await vapidRes.json()
       if (!publicKey) throw new Error('Chave VAPID não disponível.')
 
       const subscription = await subscribePush(publicKey)
       if (!subscription) throw new Error('Permissão negada ou navegador sem suporte.')
 
-      await fetch('/api/push/subscribe', {
+      const subscribeRes = await fetch('/api/push/subscribe', {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(subscription),
       })
+      if (!subscribeRes.ok) {
+        const err = await subscribeRes.json().catch(() => null)
+        throw new Error(err?.error ?? 'Não foi possível salvar a inscrição de notificações.')
+      }
 
       setPushStatus('active')
       setPushMsg({ ok: true, text: 'Notificações ativadas com sucesso.' })
 
-      await fetch('/api/notifications/push-test', { method: 'POST', credentials: 'include' })
+      const testRes = await fetch('/api/notifications/push-test', {
+        method: 'POST',
+        credentials: 'include',
+      })
+      if (!testRes.ok) {
+        const err = await testRes.json().catch(() => null)
+        throw new Error(err?.error ?? 'A inscrição foi salva, mas o push de teste falhou.')
+      }
     } catch (e: any) {
       setPushMsg({ ok: false, text: e.message ?? 'Erro ao ativar notificações.' })
     } finally {

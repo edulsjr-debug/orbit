@@ -12,5 +12,23 @@ export function PushSetup() {
     registerSW().catch(() => {})
   }, [])
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    if (!('serviceWorker' in navigator)) return
+
+    const audio = new Audio('/notification.wav')
+    audio.preload = 'auto'
+
+    const onMessage = (event: MessageEvent) => {
+      if (event.data?.type !== 'ORBIT_PUSH_RECEIVED') return
+
+      audio.currentTime = 0
+      audio.play().catch(() => {})
+    }
+
+    navigator.serviceWorker.addEventListener('message', onMessage)
+    return () => navigator.serviceWorker.removeEventListener('message', onMessage)
+  }, [])
+
   return null
 }

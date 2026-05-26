@@ -98,7 +98,12 @@ export async function notificationRoutes(app: FastifyInstance) {
       return reply.code(400).send({ error: 'Nenhuma subscription salva para este usuário' })
     }
     try {
-      await sendPushNotification(uid, '🔔 Teste Orbit', 'Push funcionando corretamente!')
+      await sendPushNotification(uid, {
+        title: 'Teste Orbit',
+        body: 'Push funcionando corretamente!',
+        url: '/dashboard/notificacoes',
+        tag: 'orbit-push-test',
+      })
       return { ok: true, message: 'Push enviado' }
     } catch (err: any) {
       return reply.code(500).send({ error: err?.message ?? 'Erro ao enviar push' })
