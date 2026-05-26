@@ -3,6 +3,11 @@ import { z } from 'zod'
 import { prisma } from '@orbit/database'
 import { scheduleEventNotifications, cancelEventNotifications } from '../services/notifications'
 
+function toStr(v: unknown): string {
+  if (v instanceof Date) return v.toISOString()
+  return String(v ?? '')
+}
+
 const eventSchema = z.object({
   title: z.string().min(1),
   description: z.string().optional(),
@@ -87,13 +92,13 @@ export async function eventRoutes(app: FastifyInstance) {
     const body = eventSchema.partial().parse(req.body)
     const historyData = eventHistoryFields
       .filter(
-        (field) => body[field] !== undefined && String(original[field]) !== String(body[field])
+        (field) => body[field] !== undefined && toStr(original[field]) !== toStr(body[field])
       )
       .map((field) => ({
         eventId: id,
         field,
-        oldValue: String(original[field] ?? ''),
-        newValue: String(body[field] ?? ''),
+        oldValue: toStr(original[field] ?? ''),
+        newValue: toStr(body[field] ?? ''),
         userId: uid,
       }))
 

@@ -110,6 +110,24 @@ function toDatetimeLocal(date: Date) {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
 }
 
+function localInputToISO(value: string): string {
+  const [datePart, timePart] = value.split('T')
+  const [y, mo, d] = datePart.split('-').map(Number)
+  const [h, m] = (timePart ?? '00:00').split(':').map(Number)
+  return new Date(y, mo - 1, d, h, m).toISOString()
+}
+
+function fmtHistoryValue(raw: string | null | undefined): string {
+  if (!raw) return 'vazio'
+  if (/^\d{4}-\d{2}-\d{2}T/.test(raw) || /^\w{3} \w{3} \d{2} \d{4}/.test(raw)) {
+    const d = new Date(raw)
+    if (!Number.isNaN(d.getTime())) {
+      return d.toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })
+    }
+  }
+  return raw
+}
+
 function defaultFormState(date: Date): EventFormState {
   const base = new Date(date)
   base.setSeconds(0, 0)
@@ -261,7 +279,7 @@ export default function CompromissosPage() {
     try {
       const payload = {
         title: form.title,
-        startAt: new Date(form.startAt).toISOString(),
+        startAt: localInputToISO(form.startAt),
         durationMinutes: Number(form.durationMinutes),
         category: form.category,
         location: form.location || undefined,
@@ -592,9 +610,9 @@ export default function CompromissosPage() {
                         <div>
                           <div style={S.timelineTitle}>{item.field}</div>
                           <div style={S.timelineBody}>
-                            <span style={S.oldValue}>{item.oldValue || 'vazio'}</span>
+                            <span style={S.oldValue}>{fmtHistoryValue(item.oldValue)}</span>
                             {' → '}
-                            <span style={S.newValue}>{item.newValue || 'vazio'}</span>
+                            <span style={S.newValue}>{fmtHistoryValue(item.newValue)}</span>
                           </div>
                           <div style={S.timelineTime}>{new Date(item.createdAt).toLocaleString('pt-BR')}</div>
                         </div>

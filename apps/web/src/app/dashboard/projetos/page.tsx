@@ -59,6 +59,17 @@ const PRIORITY_COLOR: Record<string, string> = {
 
 const fetcher = (url: string) => api.get<any>(url).then((r: any) => r.data)
 
+function pad(n: number) { return String(n).padStart(2, '0') }
+
+function toLocalDate(date: Date) {
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
+}
+
+function localDateToISO(value: string): string {
+  const [y, mo, d] = value.split('-').map(Number)
+  return new Date(y, mo - 1, d, 12, 0).toISOString()
+}
+
 export default function ProjetosPage() {
   const isMobile = useIsMobile()
   const { data: projects = [] } = useSWR<Project[]>('/projects', fetcher)
@@ -89,7 +100,7 @@ export default function ProjetosPage() {
       description: p.description ?? '',
       color: p.color,
       emoji: p.emoji,
-      deadline: p.deadline ? p.deadline.slice(0, 10) : '',
+      deadline: p.deadline ? toLocalDate(new Date(p.deadline)) : '',
     })
     setModal(true)
   }
@@ -99,7 +110,7 @@ export default function ProjetosPage() {
     try {
       const body = {
         ...form,
-        deadline: form.deadline ? new Date(form.deadline).toISOString() : undefined,
+        deadline: form.deadline ? localDateToISO(form.deadline) : undefined,
       }
 
       if (editing) {

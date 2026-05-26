@@ -2,6 +2,11 @@ import { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { prisma } from '@orbit/database'
 
+function toStr(v: unknown): string {
+  if (v instanceof Date) return v.toISOString()
+  return String(v ?? '')
+}
+
 const projectSchema = z.object({
   name: z.string().min(1),
   description: z.string().optional(),
@@ -73,13 +78,13 @@ export async function projectRoutes(app: FastifyInstance) {
     const body = projectSchema.partial().parse(req.body)
     const historyData = projectHistoryFields
       .filter(
-        (field) => body[field] !== undefined && String(original[field]) !== String(body[field])
+        (field) => body[field] !== undefined && toStr(original[field]) !== toStr(body[field])
       )
       .map((field) => ({
         projectId: id,
         field,
-        oldValue: String(original[field] ?? ''),
-        newValue: String(body[field] ?? ''),
+        oldValue: toStr(original[field] ?? ''),
+        newValue: toStr(body[field] ?? ''),
         userId: uid,
       }))
 

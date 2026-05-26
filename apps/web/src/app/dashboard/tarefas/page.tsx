@@ -72,6 +72,19 @@ const EMPTY_FORM: TaskForm = {
 
 const fetcher = (url: string) => api.get<any>(url).then((r: any) => r.data)
 
+function pad(n: number) { return String(n).padStart(2, '0') }
+
+function toDatetimeLocal(date: Date) {
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
+}
+
+function localInputToISO(value: string): string {
+  const [datePart, timePart] = value.split('T')
+  const [y, mo, d] = datePart.split('-').map(Number)
+  const [h, m] = (timePart ?? '00:00').split(':').map(Number)
+  return new Date(y, mo - 1, d, h, m).toISOString()
+}
+
 export default function TarefasPage() {
   const isMobile = useIsMobile()
   const { data: tasks = [] } = useSWR<Task[]>('/tasks', fetcher)
@@ -112,7 +125,7 @@ export default function TarefasPage() {
     setForm({
       title: t.title,
       description: t.description ?? '',
-      dueAt: t.dueAt ? t.dueAt.slice(0, 16) : '',
+      dueAt: t.dueAt ? toDatetimeLocal(new Date(t.dueAt)) : '',
       priority: t.priority,
       status: t.status,
       projectId: t.projectId ?? '',
@@ -127,7 +140,7 @@ export default function TarefasPage() {
     try {
       const body = {
         ...form,
-        dueAt: form.dueAt ? new Date(form.dueAt).toISOString() : undefined,
+        dueAt: form.dueAt ? localInputToISO(form.dueAt) : undefined,
         projectId: form.projectId || undefined,
       }
 
