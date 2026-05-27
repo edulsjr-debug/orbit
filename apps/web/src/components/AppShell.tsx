@@ -24,8 +24,8 @@ const NAV = [
   { href: '/dashboard/compromissos', short: 'CO', label: 'Compromissos' },
   { href: '/dashboard/tarefas', short: 'TA', label: 'Tarefas' },
   { href: '/dashboard/projetos', short: 'PR', label: 'Projetos' },
-  { href: '/dashboard/notificacoes', short: 'NO', label: 'Notificacoes' },
-  { href: '/dashboard/config', short: 'CF', label: 'Configuracoes' },
+  { href: '/dashboard/notificacoes', short: 'NO', label: 'Notificações' },
+  { href: '/dashboard/config', short: 'CF', label: 'Configurações' },
 ]
 
 const VERSION = process.env.NEXT_PUBLIC_APP_VERSION ?? '1.0.0'
@@ -215,7 +215,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <OrbitMark size={44} />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={S.logoName}>Orbit</div>
-                <div style={S.logoSub}>Seu espaco de organizacao</div>
+                <div style={S.logoSub}>Seu espaço de organização</div>
               </div>
               {isMobile && (
                 <button onClick={() => setSidebarOpen(false)} style={S.closeButton}>
@@ -251,7 +251,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <div style={S.avatar}>{initial}</div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={S.userName}>{firstName}</div>
-                <div style={S.userMeta}>Conta e preferencias</div>
+                <div style={S.userMeta}>Conta e preferências</div>
               </div>
             </button>
 
@@ -341,7 +341,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   }}
                 >
                   <div style={S.bellHead}>
-                    <span style={S.bellTitle}>Notificacoes</span>
+                    <span style={S.bellTitle}>Notificações</span>
                     {unreadCount > 0 && (
                       <button style={S.bellAction} onClick={() => void markAllRead()}>
                         Marcar todas como lidas

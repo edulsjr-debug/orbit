@@ -100,12 +100,12 @@ export default function LoginPage() {
 
             <div style={styles.featureStrip}>
               <div style={styles.featureItem}>
-                <span style={styles.featureKicker}>Notificacoes</span>
+                <span style={styles.featureKicker}>Notificações</span>
                 <strong style={styles.featureValue}>Celular + navegador</strong>
               </div>
               <div style={styles.featureItem}>
                 <span style={styles.featureKicker}>Fluxo</span>
-                <strong style={styles.featureValue}>Tudo no mesmo espaco</strong>
+                <strong style={styles.featureValue}>Tudo no mesmo espaço</strong>
               </div>
             </div>
           </div>
@@ -196,7 +196,7 @@ export default function LoginPage() {
 
             <div style={styles.footerNote}>
               <span style={styles.footerLine} />
-              <span>Notificacoes em tempo real para compromissos, tarefas e projetos.</span>
+              <span>Notificações em tempo real para compromissos, tarefas e projetos.</span>
             </div>
           </div>
         </section>
