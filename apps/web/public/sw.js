@@ -2,8 +2,8 @@ self.addEventListener('push', (event) => {
   const payload = event.data ? event.data.json() : {}
   const title = payload.title || 'Orbit'
   const body = payload.body || ''
-  const icon = payload.icon || '/icon-192.png'
-  const badge = '/icon-192.png'
+  const icon = payload.icon || '/icon-192-v2.png'
+  const badge = '/icon-192-v2.png'
   const url = payload.url || '/dashboard'
 
   event.waitUntil(
