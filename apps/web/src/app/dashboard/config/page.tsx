@@ -394,7 +394,7 @@ export default function ConfigPage() {
           <div style={S.infoRow}>
             <span style={S.infoLabel}>Conta criada em</span>
             <span style={S.infoValue}>
-              {user?.createdAt ? new Date(user.createdAt).toLocaleDateString('pt-BR') : '—'}
+              {user?.createdAt ? new Date(user.createdAt).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' }) : '—'}
             </span>
           </div>
           <div style={S.infoRow}>

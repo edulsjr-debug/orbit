@@ -268,7 +268,7 @@ export default function TarefasPage() {
                       <div style={S.cardMeta}>
                         {t.dueAt && (
                           <span style={{ color: overdue ? '#991B1B' : '#94A3B8' }}>
-                            {new Date(t.dueAt).toLocaleDateString('pt-BR')}
+                            {new Date(t.dueAt).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' })}
                           </span>
                         )}
                         {t.project && (
@@ -359,7 +359,7 @@ export default function TarefasPage() {
                     <div style={S.historyTop}>
                       <span style={S.historyField}>{h.field}</span>
                       <span style={S.historyDate}>
-                        {new Date(h.createdAt).toLocaleString('pt-BR')}
+                        {new Date(h.createdAt).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}
                       </span>
                     </div>
                     <div style={S.historyValues}>

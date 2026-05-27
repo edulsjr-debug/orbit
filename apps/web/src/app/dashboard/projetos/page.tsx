@@ -197,7 +197,7 @@ export default function ProjetosPage() {
                         <div style={S.cardName}>{p.name}</div>
                         {p.deadline && (
                           <div style={S.cardDeadline}>
-                            Prazo: {new Date(p.deadline).toLocaleDateString('pt-BR')}
+                            Prazo: {new Date(p.deadline).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' })}
                           </div>
                         )}
                       </div>
@@ -288,7 +288,7 @@ export default function ProjetosPage() {
                               {t.priority.toUpperCase()}
                             </span>
                             {t.dueAt && (
-                              <span>{new Date(t.dueAt).toLocaleDateString('pt-BR')}</span>
+                              <span>{new Date(t.dueAt).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' })}</span>
                             )}
                           </div>
                         </div>

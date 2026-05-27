@@ -23,6 +23,7 @@ function formatLongDate(date: Date) {
     weekday: 'long',
     day: 'numeric',
     month: 'long',
+    timeZone: 'America/Sao_Paulo',
   })
 
   return formatted.charAt(0).toUpperCase() + formatted.slice(1)
@@ -114,6 +115,7 @@ export default function DashboardPage() {
                 ? new Date(todayEvents[0].startAt).toLocaleTimeString('pt-BR', {
                     hour: '2-digit',
                     minute: '2-digit',
+                    timeZone: 'America/Sao_Paulo',
                   })
                 : 'Sem agenda'}
             </strong>
@@ -126,6 +128,7 @@ export default function DashboardPage() {
                   {new Date(event.startAt).toLocaleTimeString('pt-BR', {
                     hour: '2-digit',
                     minute: '2-digit',
+                    timeZone: 'America/Sao_Paulo',
                   })}
                 </span>
                 <span style={S.heroTimelineText}>{event.title}</span>
@@ -185,6 +188,7 @@ export default function DashboardPage() {
               sub={new Date(e.startAt).toLocaleTimeString('pt-BR', {
                 hour: '2-digit',
                 minute: '2-digit',
+                timeZone: 'America/Sao_Paulo',
               })}
               tone="#B8924F"
               right={e.hasHistory ? <EditedBadge /> : null}
