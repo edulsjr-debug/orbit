@@ -597,13 +597,33 @@ export default function CompromissosPage() {
             </div>
 
             <div style={S.tabRow}>
-              <button type="button" style={{ ...S.modalTab, ...(historyTab === 'details' ? S.modalTabActive : {}) }} onClick={() => setHistoryTab('details')}>Detalhes</button>
-              <button type="button" style={{ ...S.modalTab, ...(historyTab === 'history' ? S.modalTabActive : {}) }} onClick={() => setHistoryTab('history')}>
+              <button type="button" style={{ ...S.modalTab, ...(historyTab === 'details' && modalTab === 'editar' ? S.modalTabActive : {}) }} onClick={() => { setHistoryTab('details'); setModalTab('editar') }}>Detalhes</button>
+              <button type="button" style={{ ...S.modalTab, ...(historyTab === 'history' && modalTab === 'editar' ? S.modalTabActive : {}) }} onClick={() => { setHistoryTab('history'); setModalTab('editar') }}>
                 Histórico
               </button>
+              {editingEvent && (
+                <button type="button" style={{ ...S.modalTab, ...(modalTab === 'transferir' ? S.modalTabActive : {}) }} onClick={() => setModalTab('transferir')}>
+                  Transferir
+                </button>
+              )}
             </div>
 
-            {historyTab === 'details' ? (
+            {modalTab === 'transferir' ? (
+              <div style={S.modalBody}>
+                <div style={{ background: '#f8fafc', borderRadius: 8, padding: '10px 12px', border: '1px solid #e2e8f0', marginBottom: 12 }}>
+                  <div style={{ fontSize: 11, color: '#94a3b8', marginBottom: 2 }}>Data atual</div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: '#64748b', textDecoration: 'line-through' }}>
+                    {editingEvent ? new Date(editingEvent.startAt).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : ''}
+                  </div>
+                </div>
+                <Field label="Nova data">
+                  <input type="date" style={S.input} value={transferDate} onChange={(e) => setTransferDate(e.target.value)} />
+                </Field>
+                <Field label="Novo horário">
+                  <input type="time" style={S.input} value={transferTime} onChange={(e) => setTransferTime(e.target.value)} />
+                </Field>
+              </div>
+            ) : historyTab === 'details' ? (
               <div style={S.modalBody}>
                 <Field label="Título">
                   <input style={S.input} value={form.title} onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))} />
@@ -680,10 +700,16 @@ export default function CompromissosPage() {
             )}
 
             <div style={S.modalFooter}>
-              {editingEvent ? <button type="button" style={S.deleteButton} onClick={deleteEvent}>Excluir</button> : <span />}
+              {editingEvent && modalTab !== 'transferir' ? <button type="button" style={S.deleteButton} onClick={deleteEvent}>Excluir</button> : <span />}
               <div style={{ display: 'flex', gap: 10 }}>
                 <button type="button" style={S.secondaryButton} onClick={() => setModalOpen(false)}>Cancelar</button>
-                <button type="button" style={S.primaryButton} onClick={saveEvent} disabled={saving || !form.title.trim()}>{saving ? 'Salvando...' : 'Salvar'}</button>
+                {modalTab === 'transferir' ? (
+                  <button type="button" style={S.primaryButton} onClick={transferEvent} disabled={transferring || !transferDate || !transferTime}>
+                    {transferring ? 'Transferindo...' : 'Transferir'}
+                  </button>
+                ) : (
+                  <button type="button" style={S.primaryButton} onClick={saveEvent} disabled={saving || !form.title.trim()}>{saving ? 'Salvando...' : 'Salvar'}</button>
+                )}
               </div>
             </div>
           </div>
