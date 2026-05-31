@@ -203,6 +203,14 @@ export default function CompromissosPage() {
     return map
   }, [eventList])
 
+  const proximosEventos = useMemo(() => {
+    const now = new Date()
+    return eventList
+      .filter((e) => new Date(e.startAt) > now)
+      .sort((a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime())
+      .slice(0, 5)
+  }, [eventList])
+
   const selectedEvents = eventsByDay.get(formatDateKey(selectedDate)) ?? []
 
   const monthCells = useMemo(() => {
@@ -234,6 +242,12 @@ export default function CompromissosPage() {
     date,
     events: eventsByDay.get(formatDateKey(date)) ?? [],
   }))
+
+  function relativeDateLabel(date: Date): string {
+    if (sameDay(date, today)) return 'Hoje'
+    if (sameDay(date, addDays(today, 1))) return 'Amanhã'
+    return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })
+  }
 
   function openCreateModal(date?: Date) {
     const baseDate = date ?? selectedDate
