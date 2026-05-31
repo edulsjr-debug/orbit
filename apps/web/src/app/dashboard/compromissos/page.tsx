@@ -429,6 +429,64 @@ export default function CompromissosPage() {
               </div>
             )}
           </div>
+
+          {proximosEventos.length > 0 && (
+            <div style={{ ...S.panelCard, marginTop: 16 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+                <span style={S.label}>Próximos Compromissos</span>
+              </div>
+              {proximosEventos.map((event) => {
+                const eventDate = new Date(event.startAt)
+                const color = CATEGORY_COLORS[event.category]
+                const badge = relativeDateLabel(eventDate)
+                const badgeBg: Record<string, string> = {
+                  '#6366f1': '#eef2ff',
+                  '#3b82f6': '#eff6ff',
+                  '#10b981': '#ecfdf5',
+                  '#f59e0b': '#fffbeb',
+                  '#8b5cf6': '#f5f3ff',
+                }
+                return (
+                  <button
+                    key={event.id}
+                    type="button"
+                    onClick={() => openEditModal(event)}
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      width: '100%',
+                      textAlign: 'left',
+                      background: '#fafafa',
+                      border: 'none',
+                      borderLeft: `3px solid ${color}`,
+                      borderRadius: 8,
+                      padding: '10px 12px',
+                      marginBottom: 8,
+                      cursor: 'pointer',
+                    }}
+                    onMouseOver={(e) => { (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 2px 8px rgba(0,0,0,.12)' }}
+                    onMouseOut={(e) => { (e.currentTarget as HTMLButtonElement).style.boxShadow = 'none' }}
+                  >
+                    <div>
+                      <div style={{ fontWeight: 600, color: '#1e293b', fontSize: 13 }}>{event.title}</div>
+                      {event.location && (
+                        <div style={{ color: '#64748b', fontSize: 12, marginTop: 2 }}>📍 {event.location}</div>
+                      )}
+                    </div>
+                    <div style={{ textAlign: 'right', flexShrink: 0, marginLeft: 12 }}>
+                      <div style={{ fontSize: 11, fontWeight: 700, color, background: badgeBg[color] ?? '#f1f5f9', borderRadius: 4, padding: '2px 6px', display: 'inline-block' }}>
+                        {badge}
+                      </div>
+                      <div style={{ fontSize: 12, color: '#64748b', marginTop: 3 }}>
+                        {eventDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                      </div>
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+          )}
         </div>
       )}
 
