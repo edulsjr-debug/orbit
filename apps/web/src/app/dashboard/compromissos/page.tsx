@@ -170,6 +170,10 @@ export default function CompromissosPage() {
   const [toast, setToast] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState<EventFormState>(defaultFormState(today))
+  const [modalTab, setModalTab] = useState<'editar' | 'transferir'>('editar')
+  const [transferDate, setTransferDate] = useState('')
+  const [transferTime, setTransferTime] = useState('')
+  const [transferring, setTransferring] = useState(false)
 
   const monthStart = startOfMonth(monthCursor)
   const monthEnd = endOfMonth(monthCursor)
@@ -260,6 +264,9 @@ export default function CompromissosPage() {
   function openEditModal(event: EventItem) {
     setEditingEvent(event)
     setHistoryTab('details')
+    setModalTab('editar')
+    setTransferDate('')
+    setTransferTime('')
     setForm(eventToFormState(event))
     setModalOpen(true)
   }
@@ -323,6 +330,22 @@ export default function CompromissosPage() {
       setToast(`Compromisso movido para ${targetDate.toLocaleDateString('pt-BR')}`)
     } catch (error: any) {
       setToast(error.message ?? 'Falha ao mover compromisso')
+    }
+  }
+
+  async function transferEvent() {
+    if (!editingEvent || !transferDate || !transferTime) return
+    setTransferring(true)
+    try {
+      const newStartAt = new Date(`${transferDate}T${transferTime}:00`).toISOString()
+      await api.patch(`/events/${editingEvent.id}`, { startAt: newStartAt })
+      await mutate()
+      setModalOpen(false)
+      setToast('Compromisso transferido')
+    } catch (error: any) {
+      setToast(error.message ?? 'Falha ao transferir compromisso')
+    } finally {
+      setTransferring(false)
     }
   }
 
