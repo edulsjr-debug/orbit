@@ -189,7 +189,11 @@ export default function CompromissosPage() {
 
   const { data: events, isLoading, mutate } = useSWR(eventsKey, fetcher)
 
-  const upcomingKey = `/events?from=${encodeURIComponent(new Date().toISOString())}&to=${encodeURIComponent(addDays(new Date(), 30).toISOString())}`
+  const upcomingKey = useMemo(() => {
+    const from = startOfDay(new Date())
+    const to = addDays(from, 30)
+    return `/events?from=${encodeURIComponent(from.toISOString())}&to=${encodeURIComponent(to.toISOString())}`
+  }, [])
   const { data: upcomingEvents } = useSWR(upcomingKey, fetcher)
 
   const { data: history, isLoading: loadingHistory } = useSWR(
