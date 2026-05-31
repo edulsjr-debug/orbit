@@ -63,6 +63,14 @@ const CATEGORY_LABELS: Record<EventItem['category'], string> = {
   gestao: 'Gestão',
 }
 
+const CATEGORY_BADGE_BG: Record<string, string> = {
+  '#6366f1': '#eef2ff',
+  '#3b82f6': '#eff6ff',
+  '#10b981': '#ecfdf5',
+  '#f59e0b': '#fffbeb',
+  '#8b5cf6': '#f5f3ff',
+}
+
 const WEEK_LABELS = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom']
 
 function pad(value: number) {
@@ -180,6 +188,10 @@ export default function CompromissosPage() {
   const eventsKey = `/events?from=${encodeURIComponent(monthStart.toISOString())}&to=${encodeURIComponent(monthEnd.toISOString())}`
 
   const { data: events, isLoading, mutate } = useSWR(eventsKey, fetcher)
+
+  const upcomingKey = `/events?from=${encodeURIComponent(new Date().toISOString())}&to=${encodeURIComponent(addDays(new Date(), 30).toISOString())}`
+  const { data: upcomingEvents } = useSWR(upcomingKey, fetcher)
+
   const { data: history, isLoading: loadingHistory } = useSWR(
     modalOpen && editingEvent && historyTab === 'history' ? `/events/${editingEvent.id}/history` : null,
     fetcher
@@ -209,11 +221,11 @@ export default function CompromissosPage() {
 
   const proximosEventos = useMemo(() => {
     const now = new Date()
-    return eventList
+    return ((upcomingEvents ?? []) as EventItem[])
       .filter((e) => new Date(e.startAt) > now)
       .sort((a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime())
       .slice(0, 5)
-  }, [eventList])
+  }, [upcomingEvents])
 
   const selectedEvents = eventsByDay.get(formatDateKey(selectedDate)) ?? []
 
@@ -462,13 +474,6 @@ export default function CompromissosPage() {
                 const eventDate = new Date(event.startAt)
                 const color = CATEGORY_COLORS[event.category]
                 const badge = relativeDateLabel(eventDate)
-                const badgeBg: Record<string, string> = {
-                  '#6366f1': '#eef2ff',
-                  '#3b82f6': '#eff6ff',
-                  '#10b981': '#ecfdf5',
-                  '#f59e0b': '#fffbeb',
-                  '#8b5cf6': '#f5f3ff',
-                }
                 return (
                   <button
                     key={event.id}
@@ -498,7 +503,7 @@ export default function CompromissosPage() {
                       )}
                     </div>
                     <div style={{ textAlign: 'right', flexShrink: 0, marginLeft: 12 }}>
-                      <div style={{ fontSize: 11, fontWeight: 700, color, background: badgeBg[color] ?? '#f1f5f9', borderRadius: 4, padding: '2px 6px', display: 'inline-block' }}>
+                      <div style={{ fontSize: 11, fontWeight: 700, color, background: CATEGORY_BADGE_BG[color] ?? '#f1f5f9', borderRadius: 4, padding: '2px 6px', display: 'inline-block' }}>
                         {badge}
                       </div>
                       <div style={{ fontSize: 12, color: '#64748b', marginTop: 3 }}>
