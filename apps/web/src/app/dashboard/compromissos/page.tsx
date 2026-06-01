@@ -365,6 +365,75 @@ export default function CompromissosPage() {
     }
   }
 
+  function formatFieldLabel(field: string): string {
+    const labels: Record<string, string> = {
+      title: '📝 Título',
+      location: '📍 Local',
+      startAt: '📅 Data e hora',
+      durationMinutes: '⏱ Duração',
+      category: '🏷 Categoria',
+      notifPush: '🔔 Notif. push',
+      notifEmail: '📧 Notif. email',
+      notifWhatsapp: '💬 Notif. WhatsApp',
+      notifAdvance: '⏰ Antecedência',
+    }
+    return labels[field] ?? field
+  }
+
+  function formatFieldValue(field: string, value: string | null | undefined): string {
+    if (!value) return '(vazio)'
+    if (field === 'startAt') {
+      const d = new Date(value)
+      return `${d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })} às ${d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`
+    }
+    if (field === 'durationMinutes') {
+      const mins = Number(value)
+      const h = Math.floor(mins / 60)
+      const m = mins % 60
+      if (h === 0) return `${m}min`
+      if (m === 0) return `${h}h`
+      return `${h}h ${m}min`
+    }
+    if (field === 'category') {
+      return CATEGORY_LABELS[value as EventItem['category']] ?? value
+    }
+    if (field === 'notifPush' || field === 'notifEmail' || field === 'notifWhatsapp') {
+      return value === 'true' ? 'Ativada' : 'Desativada'
+    }
+    if (field === 'notifAdvance') {
+      const mins = Number(value)
+      if (mins < 60) return `${mins} min antes`
+      if (mins === 60) return '1h antes'
+      if (mins === 1440) return '1 dia antes'
+      return `${Math.floor(mins / 60)}h antes`
+    }
+    return value
+  }
+
+  function formatRelativeTime(date: Date): string {
+    const now = new Date()
+    const diffMs = now.getTime() - date.getTime()
+    const diffDays = Math.floor(diffMs / 86400000)
+    const time = date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+    if (diffDays === 0) return `hoje às ${time}`
+    if (diffDays === 1) return `ontem às ${time}`
+    return `${date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })} às ${time}`
+  }
+
+  function groupHistoryItems(items: EventHistoryItem[]): Array<{ timestamp: Date; items: EventHistoryItem[] }> {
+    const groups: Array<{ timestamp: Date; items: EventHistoryItem[] }> = []
+    for (const item of items) {
+      const itemTime = new Date(item.createdAt).getTime()
+      const last = groups[groups.length - 1]
+      if (last && Math.abs(itemTime - last.timestamp.getTime()) <= 5000) {
+        last.items.push(item)
+      } else {
+        groups.push({ timestamp: new Date(item.createdAt), items: [item] })
+      }
+    }
+    return groups
+  }
+
   return (
     <div>
       <style>{`
