@@ -757,18 +757,25 @@ export default function CompromissosPage() {
                 ) : (history ?? []).length === 0 ? (
                   <div style={S.emptyState}>Nenhuma alteração registrada.</div>
                 ) : (
-                  <div style={S.timeline}>
-                    {(history as EventHistoryItem[]).map((item) => (
-                      <div key={item.id} style={S.timelineItem}>
-                        <div style={S.timelineDot}>✏</div>
-                        <div>
-                          <div style={S.timelineTitle}>{item.field}</div>
-                          <div style={S.timelineBody}>
-                            <span style={S.oldValue}>{item.oldValue || 'vazio'}</span>
-                            {' → '}
-                            <span style={S.newValue}>{item.newValue || 'vazio'}</span>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    {groupHistoryItems(history as EventHistoryItem[]).map((group, gi) => (
+                      <div key={gi} style={{ border: '1px solid #e2e8f0', borderRadius: 10, overflow: 'hidden' }}>
+                        <div style={{ background: '#f8fafc', padding: '10px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e2e8f0' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <div style={{ width: 24, height: 24, borderRadius: '50%', background: '#eef2ff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13 }}>✏️</div>
+                            <span style={{ fontWeight: 600, color: '#1e293b', fontSize: 13 }}>Editado</span>
                           </div>
-                          <div style={S.timelineTime}>{new Date(item.createdAt).toLocaleString('pt-BR')}</div>
+                          <span style={{ fontSize: 11, color: '#94a3b8' }}>{formatRelativeTime(group.timestamp)}</span>
+                        </div>
+                        <div style={{ padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                          {group.items.map((item) => (
+                            <div key={item.id} style={{ display: 'flex', alignItems: 'baseline', gap: 6, fontSize: 12, flexWrap: 'wrap' }}>
+                              <span style={{ color: '#64748b', minWidth: 100, fontWeight: 500, flexShrink: 0 }}>{formatFieldLabel(item.field)}</span>
+                              <span style={{ color: '#94a3b8', textDecoration: 'line-through' }}>{formatFieldValue(item.field, item.oldValue)}</span>
+                              <span style={{ color: '#94a3b8' }}>→</span>
+                              <span style={{ color: '#1e293b', fontWeight: 600 }}>{formatFieldValue(item.field, item.newValue)}</span>
+                            </div>
+                          ))}
                         </div>
                       </div>
                     ))}
