@@ -1,43 +1,33 @@
 'use client'
 
 import { useEffect } from 'react'
-import { registerSW, subscribePush } from '@/lib/push'
+import { registerSW } from '@/lib/push'
 
+// Registra o service worker silenciosamente no boot.
+// A subscrição de push é feita via botão na página de Configurações.
 export function PushSetup() {
   useEffect(() => {
-    async function setupPush() {
-      if (typeof window === 'undefined') return
-      if (!('serviceWorker' in navigator) || !('PushManager' in window)) return
+    if (typeof window === 'undefined') return
+    if (!('serviceWorker' in navigator)) return
+    registerSW().catch(() => {})
+  }, [])
 
-      await registerSW()
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    if (!('serviceWorker' in navigator)) return
 
-      const registration = await navigator.serviceWorker.ready
-      const existingSubscription = await registration.pushManager.getSubscription()
-      if (existingSubscription) return
+    const audio = new Audio('/notification.wav')
+    audio.preload = 'auto'
 
-      const vapidResponse = await fetch('/api/push/vapid-key', {
-        credentials: 'include',
-      })
-      const vapidData = await vapidResponse.json().catch(() => ({}))
-      const vapidPublicKey =
-        vapidData.publicKey || process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
+    const onMessage = (event: MessageEvent) => {
+      if (event.data?.type !== 'ORBIT_PUSH_RECEIVED') return
 
-      if (!vapidPublicKey) return
-
-      const subscription = await subscribePush(vapidPublicKey)
-      if (!subscription) return
-
-      await fetch('/api/push/subscribe', {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(subscription),
-      })
+      audio.currentTime = 0
+      audio.play().catch(() => {})
     }
 
-    setupPush().catch((err) => {
-      console.error('Falha ao configurar push:', err)
-    })
+    navigator.serviceWorker.addEventListener('message', onMessage)
+    return () => navigator.serviceWorker.removeEventListener('message', onMessage)
   }, [])
 
   return null

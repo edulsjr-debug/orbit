@@ -11,6 +11,33 @@ function urlBase64ToUint8Array(base64String: string) {
   return outputArray
 }
 
+function pushErrorMessage(error: unknown) {
+  const fallback = 'Nao foi possivel ativar as notificacoes push.'
+  if (!(error instanceof Error)) return fallback
+
+  const message = error.message.toLowerCase()
+  const name = error.name.toLowerCase()
+
+  if (
+    name.includes('notallowed') ||
+    message.includes('permission denied') ||
+    message.includes('registration failed') ||
+    message.includes('denied')
+  ) {
+    return 'As notificacoes estao bloqueadas no navegador ou no sistema. Libere a permissao do site e tente novamente.'
+  }
+
+  if (name.includes('invalidstate')) {
+    return 'O navegador recusou a inscricao push atual. Recarregue a pagina e tente novamente.'
+  }
+
+  if (name.includes('abort')) {
+    return 'A ativacao do push foi interrompida pelo navegador. Tente novamente em alguns segundos.'
+  }
+
+  return error.message || fallback
+}
+
 export async function registerSW() {
   if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return null
   return navigator.serviceWorker.register('/sw.js')
@@ -19,6 +46,12 @@ export async function registerSW() {
 export async function subscribePush(vapidPublicKey: string) {
   if (typeof window === 'undefined') return null
   if (!('serviceWorker' in navigator) || !('PushManager' in window)) return null
+
+  if (Notification.permission === 'denied') {
+    throw new Error(
+      'As notificacoes estao bloqueadas no navegador. Libere a permissao do site para continuar.'
+    )
+  }
 
   const permission = await Notification.requestPermission()
   if (permission !== 'granted') return null
@@ -29,10 +62,16 @@ export async function subscribePush(vapidPublicKey: string) {
     return existingSubscription.toJSON()
   }
 
-  const subscription = await registration.pushManager.subscribe({
-    userVisibleOnly: true,
-    applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
-  })
+  let subscription
+
+  try {
+    subscription = await registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
+    })
+  } catch (error) {
+    throw new Error(pushErrorMessage(error))
+  }
 
   return subscription.toJSON()
 }

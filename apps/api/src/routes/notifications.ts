@@ -1,6 +1,7 @@
 import { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { prisma } from '@orbit/database'
+import { sendPushNotification } from '../services/notifications'
 
 function userId(req: any): string {
   return (req.user as { sub: string }).sub
@@ -63,5 +64,49 @@ export async function notificationRoutes(app: FastifyInstance) {
       data: { pushSub: body.subscription },
     })
     return { message: 'Push subscription registrado' }
+  })
+
+  // Diagnóstico e teste de push
+  app.get('/push-debug', auth, async (req) => {
+    const uid = userId(req)
+    const user = await prisma.user.findUnique({
+      where: { id: uid },
+      select: { pushSub: true },
+    })
+    const pendingJobs = await prisma.notificationJob.count({
+      where: { status: 'pending' },
+    })
+    const failedJobs = await prisma.notificationJob.count({
+      where: { status: 'failed' },
+    })
+    return {
+      hasPushSub: !!user?.pushSub,
+      vapidPublicKey: !!process.env.VAPID_PUBLIC_KEY,
+      vapidPrivateKey: !!process.env.VAPID_PRIVATE_KEY,
+      pendingJobs,
+      failedJobs,
+    }
+  })
+
+  app.post('/push-test', auth, async (req, reply) => {
+    const uid = userId(req)
+    const user = await prisma.user.findUnique({
+      where: { id: uid },
+      select: { pushSub: true },
+    })
+    if (!user?.pushSub) {
+      return reply.code(400).send({ error: 'Nenhuma subscription salva para este usuário' })
+    }
+    try {
+      await sendPushNotification(uid, {
+        title: 'Teste Orbit',
+        body: 'Push funcionando corretamente!',
+        url: '/dashboard/notificacoes',
+        tag: 'orbit-push-test',
+      })
+      return { ok: true, message: 'Push enviado' }
+    } catch (err: any) {
+      return reply.code(500).send({ error: err?.message ?? 'Erro ao enviar push' })
+    }
   })
 }
