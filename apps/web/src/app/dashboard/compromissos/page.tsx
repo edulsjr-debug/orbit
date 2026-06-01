@@ -412,17 +412,19 @@ export default function CompromissosPage() {
 
   function formatRelativeTime(date: Date): string {
     const now = new Date()
-    const diffMs = now.getTime() - date.getTime()
-    const diffDays = Math.floor(diffMs / 86400000)
     const time = date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
-    if (diffDays === 0) return `hoje às ${time}`
-    if (diffDays === 1) return `ontem às ${time}`
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+    const yesterday = new Date(today.getTime() - 86400000)
+    const dateOnly = new Date(date.getFullYear(), date.getMonth(), date.getDate())
+    if (dateOnly.getTime() === today.getTime()) return `hoje às ${time}`
+    if (dateOnly.getTime() === yesterday.getTime()) return `ontem às ${time}`
     return `${date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })} às ${time}`
   }
 
   function groupHistoryItems(items: EventHistoryItem[]): Array<{ timestamp: Date; items: EventHistoryItem[] }> {
+    const sorted = [...items].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
     const groups: Array<{ timestamp: Date; items: EventHistoryItem[] }> = []
-    for (const item of items) {
+    for (const item of sorted) {
       const itemTime = new Date(item.createdAt).getTime()
       const last = groups[groups.length - 1]
       if (last && Math.abs(itemTime - last.timestamp.getTime()) <= 5000) {
