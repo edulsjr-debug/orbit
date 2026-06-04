@@ -6,6 +6,8 @@ import useSWR, { mutate } from 'swr'
 import { api } from '@/lib/api'
 import { useIsMobile } from '@/lib/use-mobile'
 import { projectStatus, STATUS_LABEL, STATUS_PILL_STYLE } from '@/lib/project-status'
+import { TaskModal } from '@/components/TaskModal'
+import type { ProjectForModal } from '@/components/TaskModal'
 
 type Project = {
   id: string
@@ -69,6 +71,10 @@ export default function ProjetosPage() {
   const [editing, setEditing] = useState<Project | null>(null)
   const [form, setForm] = useState<ProjectForm>(EMPTY_FORM)
   const [saving, setSaving] = useState(false)
+  const [taskModal, setTaskModal] = useState<{ open: boolean; projectId: string }>({
+    open: false,
+    projectId: '',
+  })
 
   const projectsWithStats = projects.map((p) => ({
     ...p,
@@ -183,6 +189,12 @@ export default function ProjetosPage() {
                       )}
                     </div>
                     <div style={S.cardActions} onClick={(e) => e.stopPropagation()}>
+                      <button
+                        style={S.iconBtn}
+                        onClick={() => setTaskModal({ open: true, projectId: p.id })}
+                      >
+                        + Tarefa
+                      </button>
                       <button style={S.iconBtn} onClick={() => openEdit(p)}>Editar</button>
                       <button style={S.iconBtnDanger} onClick={() => remove(p.id)}>Remover</button>
                     </div>
@@ -214,6 +226,17 @@ export default function ProjetosPage() {
           </div>
         </section>
       )}
+
+      <TaskModal
+        open={taskModal.open}
+        onClose={() => setTaskModal({ open: false, projectId: '' })}
+        onSaved={() => {
+          mutate('/tasks')
+          mutate('/projects')
+        }}
+        projects={projects as ProjectForModal[]}
+        defaultProjectId={taskModal.projectId || undefined}
+      />
 
       {modal && (
         <div style={S.overlay} onClick={() => setModal(false)}>

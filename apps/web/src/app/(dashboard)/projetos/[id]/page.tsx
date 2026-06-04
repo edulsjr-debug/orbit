@@ -7,6 +7,8 @@ import useSWR, { mutate } from 'swr'
 import { api } from '@/lib/api'
 import { projectStatus, STATUS_LABEL, STATUS_PILL_STYLE } from '@/lib/project-status'
 import { useIsMobile } from '@/lib/use-mobile'
+import { TaskModal } from '@/components/TaskModal'
+import type { ProjectForModal } from '@/components/TaskModal'
 
 type Project = {
   id: string
@@ -45,6 +47,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
 
   const { data: project } = useSWR<Project>(`/projects/${id}`, fetcher)
   const { data: tasks = [], isLoading: tasksLoading } = useSWR<Task[]>(`/tasks?projectId=${id}`, fetcher)
+  const [taskModalOpen, setTaskModalOpen] = useState(false)
 
   const isMobile = useIsMobile()
   const [taskFilter, setTaskFilter] = useState<'all' | TaskStatus>('all')
@@ -52,6 +55,8 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
   if (!project) {
     return <div style={S.loading}>Carregando...</div>
   }
+
+  const projectForModal: ProjectForModal[] = [{ id: project.id, name: project.name, emoji: project.emoji, color: project.color }]
 
   // GET /projects/:id includes tasks array but does not pre-compute counts —
   // use the tasks array from the separate SWR (stays in sync with toggleStatus)
@@ -152,17 +157,22 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
       <section style={S.tasksSection}>
         <div style={S.tasksPanelHead}>
           <div style={S.panelTitle}>Tarefas</div>
-          <div style={S.tabs}>
-            {(['all', 'pending', 'in_progress', 'done'] as const).map((f) => (
-              <button
-                key={f}
-                style={{ ...S.tab, ...(taskFilter === f ? S.tabActive : {}) }}
-                onClick={() => setTaskFilter(f)}
-              >
-                {f === 'all' ? 'Todas' : STATUS_LABEL_TASK[f as TaskStatus]}
-                <span style={S.tabBadge}>{counts[f]}</span>
-              </button>
-            ))}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+            <button style={S.btnNewTask} onClick={() => setTaskModalOpen(true)}>
+              + Nova tarefa
+            </button>
+            <div style={S.tabs}>
+              {(['all', 'pending', 'in_progress', 'done'] as const).map((f) => (
+                <button
+                  key={f}
+                  style={{ ...S.tab, ...(taskFilter === f ? S.tabActive : {}) }}
+                  onClick={() => setTaskFilter(f)}
+                >
+                  {f === 'all' ? 'Todas' : STATUS_LABEL_TASK[f as TaskStatus]}
+                  <span style={S.tabBadge}>{counts[f]}</span>
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
@@ -208,6 +218,18 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
           ))}
         </div>
       </section>
+
+      <TaskModal
+        open={taskModalOpen}
+        onClose={() => setTaskModalOpen(false)}
+        onSaved={() => {
+          mutate(`/tasks?projectId=${id}`)
+          mutate(`/projects/${id}`)
+          mutate('/projects')
+        }}
+        projects={projectForModal}
+        defaultProjectId={id}
+      />
     </div>
   )
 }
@@ -310,4 +332,14 @@ const S: Record<string, React.CSSProperties> = {
     marginTop: 5, flexWrap: 'wrap', fontSize: 11, color: '#94A3B8',
   },
   priorityPill: { padding: '3px 8px', borderRadius: 999, fontSize: 10, fontWeight: 700 },
+  btnNewTask: {
+    padding: '6px 14px',
+    background: 'linear-gradient(135deg, #050B14 0%, #101C2B 100%)',
+    color: '#F5F2EC',
+    border: 'none',
+    borderRadius: 10,
+    fontWeight: 700,
+    fontSize: 12,
+    cursor: 'pointer',
+  },
 }
