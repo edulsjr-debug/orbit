@@ -1,5 +1,6 @@
 'use client'
 
+import { useRouter } from 'next/navigation'
 import useSWR from 'swr'
 import { api } from '@/lib/api'
 import { useIsMobile } from '@/lib/use-mobile'
@@ -30,6 +31,7 @@ function formatLongDate(date: Date) {
 }
 
 export default function DashboardPage() {
+  const router = useRouter()
   const isMobile = useIsMobile()
   const now = new Date()
   const today = startOfDay(now)
@@ -101,13 +103,13 @@ export default function DashboardPage() {
           </div>
 
           <div style={S.heroMetrics}>
-            <MetricMini label="Urgência" value={overdueTasks.length} tone="danger" />
-            <MetricMini label="Hoje" value={dueTodayTasks.length} tone="warning" />
-            <MetricMini label="Alertas" value={unreadNotifications} tone="neutral" />
+            <MetricMini label="Urgência" value={overdueTasks.length} tone="danger" onClick={() => router.push('/tarefas')} />
+            <MetricMini label="Hoje" value={dueTodayTasks.length} tone="warning" onClick={() => router.push('/tarefas')} />
+            <MetricMini label="Alertas" value={unreadNotifications} tone="neutral" onClick={() => router.push('/notificacoes')} />
           </div>
         </div>
 
-        <div style={S.heroRail}>
+        <div style={{ ...S.heroRail, cursor: 'pointer' }} onClick={() => router.push('/compromissos')}>
           <div style={S.heroNote}>
             <span style={S.heroNoteLabel}>Próxima janela</span>
             <strong style={S.heroNoteValue}>
@@ -143,34 +145,10 @@ export default function DashboardPage() {
       </section>
 
       <section style={S.statsGrid}>
-        <StatCard
-          accent="#B8924F"
-          title="Compromissos hoje"
-          value={todayEvents.length}
-          detail="Agenda do dia"
-          loading={hasLoadingStats}
-        />
-        <StatCard
-          accent="#0F766E"
-          title="Tarefas pendentes"
-          value={pendingTasks}
-          detail="Fila operacional"
-          loading={hasLoadingStats}
-        />
-        <StatCard
-          accent="#1D4ED8"
-          title="Projetos ativos"
-          value={activeProjects}
-          detail="Frentes abertas"
-          loading={hasLoadingStats}
-        />
-        <StatCard
-          accent="#991B1B"
-          title="Não lidas"
-          value={unreadNotifications}
-          detail="Central de alertas"
-          loading={hasLoadingStats}
-        />
+        <StatCard accent="#B8924F" title="Compromissos hoje" value={todayEvents.length} detail="Agenda do dia" loading={hasLoadingStats} onClick={() => router.push('/compromissos')} />
+        <StatCard accent="#0F766E" title="Tarefas pendentes" value={pendingTasks} detail="Fila operacional" loading={hasLoadingStats} onClick={() => router.push('/tarefas')} />
+        <StatCard accent="#1D4ED8" title="Projetos ativos" value={activeProjects} detail="Frentes abertas" loading={hasLoadingStats} onClick={() => router.push('/projetos')} />
+        <StatCard accent="#991B1B" title="Não lidas" value={unreadNotifications} detail="Central de alertas" loading={hasLoadingStats} onClick={() => router.push('/notificacoes')} />
       </section>
 
       <section style={{ ...S.mainGrid, ...(isMobile ? S.mainGridMobile : null) }}>
@@ -180,6 +158,7 @@ export default function DashboardPage() {
           empty={todayEvents.length === 0}
           emptyMsg="Nenhum compromisso hoje"
           loading={hasLoadingLists}
+          onHeaderClick={() => router.push('/compromissos')}
         >
           {todayEvents.map((e: any) => (
             <ListItem
@@ -192,6 +171,7 @@ export default function DashboardPage() {
               })}
               tone="#B8924F"
               right={e.hasHistory ? <EditedBadge /> : null}
+              onClick={() => router.push('/compromissos')}
             />
           ))}
         </Section>
@@ -202,6 +182,7 @@ export default function DashboardPage() {
           empty={overdueTasks.length === 0 && dueTodayTasks.length === 0}
           emptyMsg="Sem tarefas urgentes"
           loading={hasLoadingLists}
+          onHeaderClick={() => router.push('/tarefas')}
         >
           {overdueTasks.map((t: any) => (
             <ListItem
@@ -210,6 +191,7 @@ export default function DashboardPage() {
               sub="Atrasada"
               tone="#991B1B"
               right={<span style={S.badgeDanger}>Atrasada</span>}
+              onClick={() => router.push('/tarefas')}
             />
           ))}
           {dueTodayTasks
@@ -221,15 +203,16 @@ export default function DashboardPage() {
                 sub="Vence hoje"
                 tone="#B8924F"
                 right={<span style={S.badgeWarning}>Hoje</span>}
+                onClick={() => router.push('/tarefas')}
               />
             ))}
         </Section>
       </section>
 
       <section style={S.projectsCard}>
-        <div style={S.sectionHead}>
+        <div style={{ ...S.sectionHead, cursor: 'pointer' }} onClick={() => router.push('/projetos')}>
           <div>
-            <div style={S.sectionTitle}>Projetos em andamento</div>
+            <div style={S.sectionTitle}>Projetos em andamento →</div>
             <div style={S.sectionSub}>Acompanhamento de progresso por frente</div>
           </div>
         </div>
@@ -252,7 +235,7 @@ export default function DashboardPage() {
                 const barColor = p.color || '#B8924F'
 
                 return (
-                  <div key={p.id} style={S.projectCard}>
+                  <div key={p.id} style={{ ...S.projectCard, cursor: 'pointer' }} onClick={() => router.push(`/projetos/${p.id}`)}>
                     <div style={S.projectHead}>
                       <span style={S.projectName}>
                         {p.emoji ? `${p.emoji} ` : ''}
@@ -287,10 +270,12 @@ function MetricMini({
   label,
   value,
   tone,
+  onClick,
 }: {
   label: string
   value: number
   tone: 'danger' | 'warning' | 'neutral'
+  onClick?: () => void
 }) {
   const toneMap = {
     danger: { border: 'rgba(153,27,27,0.18)', bg: 'rgba(153,27,27,0.08)', color: '#991B1B' },
@@ -299,7 +284,7 @@ function MetricMini({
   }[tone]
 
   return (
-    <div style={{ ...S.metricMini, borderColor: toneMap.border, background: toneMap.bg }}>
+    <div style={{ ...S.metricMini, borderColor: toneMap.border, background: toneMap.bg, cursor: onClick ? 'pointer' : 'default' }} onClick={onClick}>
       <span style={S.metricMiniLabel}>{label}</span>
       <strong style={{ ...S.metricMiniValue, color: toneMap.color }}>{value}</strong>
     </div>
@@ -307,20 +292,12 @@ function MetricMini({
 }
 
 function StatCard({
-  accent,
-  title,
-  value,
-  detail,
-  loading,
+  accent, title, value, detail, loading, onClick,
 }: {
-  accent: string
-  title: string
-  value: number
-  detail: string
-  loading?: boolean
+  accent: string; title: string; value: number; detail: string; loading?: boolean; onClick?: () => void
 }) {
   return (
-    <div style={S.statCard}>
+    <div style={{ ...S.statCard, cursor: 'pointer' }} onClick={onClick}>
       <div style={{ ...S.statAccent, background: accent }} />
       <div style={S.statLabel}>{title}</div>
       {loading ? <SkeletonLine width="56px" height={38} /> : <div style={S.statValue}>{value}</div>}
@@ -329,12 +306,12 @@ function StatCard({
   )
 }
 
-function Section({ title, subtitle, children, empty, emptyMsg, loading }: any) {
+function Section({ title, subtitle, children, empty, emptyMsg, loading, onHeaderClick }: any) {
   return (
     <div style={S.sectionCard}>
-      <div style={S.sectionHead}>
+      <div style={{ ...S.sectionHead, cursor: onHeaderClick ? 'pointer' : 'default' }} onClick={onHeaderClick}>
         <div>
-          <div style={S.sectionTitle}>{title}</div>
+          <div style={S.sectionTitle}>{title}{onHeaderClick ? ' →' : ''}</div>
           <div style={S.sectionSub}>{subtitle}</div>
         </div>
       </div>
@@ -356,9 +333,9 @@ function Section({ title, subtitle, children, empty, emptyMsg, loading }: any) {
   )
 }
 
-function ListItem({ title, sub, tone, right }: any) {
+function ListItem({ title, sub, tone, right, onClick }: any) {
   return (
-    <div style={S.listItem}>
+    <div style={{ ...S.listItem, cursor: 'pointer' }} onClick={onClick}>
       <div style={{ ...S.listDot, background: tone }} />
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={S.listTitle}>{title}</div>
