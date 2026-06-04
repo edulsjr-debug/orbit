@@ -50,6 +50,18 @@ const STATUS_COLOR: Record<Status, string> = {
   done: '#0F766E',
 }
 
+const CHECK_LABEL: Record<Status, string> = {
+  pending: 'INICIAR',
+  in_progress: 'CONCLUIR',
+  done: 'REABRIR',
+}
+
+const CHECK_LABEL_COLOR: Record<Status, string> = {
+  pending: '#CBD5E1',
+  in_progress: '#1D4ED8',
+  done: '#0F766E',
+}
+
 const fetcher = (url: string) => api.get<any>(url).then((r: any) => r.data)
 
 export default function TarefasPage() {
@@ -187,24 +199,29 @@ export default function TarefasPage() {
                   key={t.id}
                   style={{
                     ...S.card,
-                    opacity: t.status === 'done' ? 0.68 : 1,
+                    opacity: t.status === 'done' ? 0.55 : 1,
                     borderColor: overdue ? 'rgba(153,27,27,0.14)' : 'rgba(5,11,20,0.08)',
                   }}
                 >
-                  <div style={S.cardLeft}>
-                    <button
-                      style={{
-                        ...S.checkBtn,
-                        ...(t.status === 'done'
-                          ? S.checkDone
-                          : t.status === 'in_progress'
-                            ? S.checkProgress
-                            : {}),
-                      }}
-                      onClick={() => toggleStatus(t)}
-                    >
-                      {t.status === 'done' ? '✓' : t.status === 'in_progress' ? '◔' : '○'}
-                    </button>
+                  <div style={S.cardMain}>
+                    <div style={S.checkWrap}>
+                      <button
+                        style={{
+                          ...S.checkBtn,
+                          ...(t.status === 'done'
+                            ? S.checkDone
+                            : t.status === 'in_progress'
+                              ? S.checkProgress
+                              : {}),
+                        }}
+                        onClick={() => toggleStatus(t)}
+                      >
+                        {t.status === 'done' ? '✓' : t.status === 'in_progress' ? '◔' : '○'}
+                      </button>
+                      <span style={{ ...S.checkLabelText, color: CHECK_LABEL_COLOR[t.status] }}>
+                        {CHECK_LABEL[t.status]}
+                      </span>
+                    </div>
 
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={S.cardTitleRow}>
@@ -221,12 +238,16 @@ export default function TarefasPage() {
                         {t.hasHistory && <span style={S.editBadge}>Editada</span>}
                       </div>
 
-                      <div style={S.cardMeta}>
-                        {t.dueAt && (
-                          <span style={{ color: overdue ? '#991B1B' : '#94A3B8' }}>
-                            {new Date(t.dueAt).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' })}
-                          </span>
-                        )}
+                      <div style={S.cardTags}>
+                        <span
+                          style={{
+                            ...S.tag,
+                            background: `${PRIORITY_COLOR[t.priority]}16`,
+                            color: PRIORITY_COLOR[t.priority],
+                          }}
+                        >
+                          ● {PRIORITY_LABEL[t.priority]}
+                        </span>
                         {t.project && (
                           <span
                             style={{
@@ -239,44 +260,46 @@ export default function TarefasPage() {
                             {t.project.name}
                           </span>
                         )}
+                        {t.dueAt && (
+                          <span
+                            style={{
+                              ...S.cardDate,
+                              color: overdue ? '#991B1B' : '#94A3B8',
+                              fontWeight: overdue ? 700 : 400,
+                            }}
+                          >
+                            {overdue ? '⚠ ' : ''}
+                            {new Date(t.dueAt).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' })}
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>
 
-                  <div style={S.cardRight}>
-                    <span
-                      style={{
-                        ...S.pill,
-                        background: `${PRIORITY_COLOR[t.priority]}16`,
-                        color: PRIORITY_COLOR[t.priority],
-                      }}
-                    >
-                      {PRIORITY_LABEL[t.priority]}
-                    </span>
-                    <span
-                      style={{
-                        ...S.pill,
-                        background: `${STATUS_COLOR[t.status]}16`,
-                        color: STATUS_COLOR[t.status],
-                      }}
-                    >
+                  <div style={S.cardFooter}>
+                    <span style={{ ...S.statusLabel, color: STATUS_COLOR[t.status] }}>
                       {STATUS_LABEL[t.status]}
                     </span>
-                    {t.hasHistory && (
-                      <button
-                        style={S.iconBtn}
-                        onClick={() => setHistoryTaskId(historyTaskId === t.id ? null : t.id)}
-                        title="Ver histórico"
-                      >
-                        Histórico
+                    <div style={S.cardActions}>
+                      {t.hasHistory && (
+                        <button
+                          style={S.actionBtn}
+                          onClick={() => setHistoryTaskId(historyTaskId === t.id ? null : t.id)}
+                        >
+                          Histórico
+                        </button>
+                      )}
+                      <button style={S.actionBtn} onClick={() => openEdit(t)}>
+                        Editar
                       </button>
-                    )}
-                    <button style={S.iconBtn} onClick={() => openEdit(t)}>
-                      Editar
-                    </button>
-                    <button style={S.iconBtnDanger} onClick={() => remove(t.id)}>
-                      Remover
-                    </button>
+                      <span style={S.actionSep}>·</span>
+                      <button
+                        style={{ ...S.actionBtn, color: '#991B1B' }}
+                        onClick={() => remove(t.id)}
+                      >
+                        Remover
+                      </button>
+                    </div>
                   </div>
                 </div>
               )
@@ -398,16 +421,6 @@ const S: Record<string, React.CSSProperties> = {
     fontSize: 13,
     cursor: 'pointer',
   },
-  btnGhost: {
-    padding: '12px 18px',
-    background: '#F4F6F8',
-    color: '#475569',
-    border: '1px solid rgba(5,11,20,0.08)',
-    borderRadius: 14,
-    fontWeight: 600,
-    fontSize: 13,
-    cursor: 'pointer',
-  },
   metrics: {
     display: 'grid',
     gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
@@ -523,114 +536,62 @@ const S: Record<string, React.CSSProperties> = {
     fontSize: 14,
   },
   card: {
-    background: '#FBFCFD',
-    border: '1px solid rgba(5,11,20,0.08)',
-    borderRadius: 18,
+    background: '#FFFFFF',
+    borderWidth: 1,
+    borderStyle: 'solid',
+    borderColor: 'rgba(5,11,20,0.08)',
+    borderRadius: 20,
     padding: '14px 16px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 12,
+    transition: 'opacity .15s',
   },
-  cardLeft: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 12,
-    flex: 1,
-    minWidth: 0,
+  cardMain: {
+    display: 'flex', alignItems: 'flex-start', gap: 14,
   },
-  cardRight: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 8,
-    flexShrink: 0,
-    flexWrap: 'wrap',
-    justifyContent: 'flex-end',
-  },
-  cardTitleRow: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 8,
-    flexWrap: 'wrap',
-  },
-  cardTitle: {
-    fontSize: 14,
-    fontWeight: 700,
-    color: '#0F172A',
-  },
-  cardMeta: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 8,
-    marginTop: 6,
-    fontSize: 12,
-    color: '#94A3B8',
-    flexWrap: 'wrap',
+  checkWrap: {
+    display: 'flex', flexDirection: 'column', alignItems: 'center',
+    gap: 4, flexShrink: 0,
   },
   checkBtn: {
-    width: 28,
-    height: 28,
-    borderRadius: '50%',
-    border: '1.5px solid #CBD5E1',
-    background: 'none',
-    cursor: 'pointer',
-    fontSize: 14,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0,
-    color: '#64748B',
+    width: 32, height: 32, borderRadius: 10,
+    border: '2px solid #E2E8F0', background: 'none', cursor: 'pointer',
+    fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center',
+    transition: 'all .15s',
   },
-  checkDone: {
-    background: '#0F766E',
-    border: '1.5px solid #0F766E',
-    color: '#FFFFFF',
+  checkDone: { background: '#0F766E', borderColor: '#0F766E', color: '#fff' },
+  checkProgress: { background: '#EFF6FF', borderColor: '#1D4ED8', color: '#1D4ED8' },
+  checkLabelText: {
+    fontSize: 9, fontWeight: 700, letterSpacing: '0.04em',
+    textTransform: 'uppercase', whiteSpace: 'nowrap',
   },
-  checkProgress: {
-    background: '#1D4ED8',
-    border: '1.5px solid #1D4ED8',
-    color: '#FFFFFF',
+  cardTitleRow: {
+    display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6,
+  },
+  cardTitle: {
+    fontSize: 15, fontWeight: 700, color: '#0F172A', lineHeight: 1.3,
+  },
+  cardTags: {
+    display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap',
   },
   tag: {
-    padding: '3px 8px',
-    borderRadius: 999,
-    fontSize: 11,
-    fontWeight: 700,
+    fontSize: 11, fontWeight: 600, padding: '3px 9px', borderRadius: 999,
   },
-  pill: {
-    padding: '5px 9px',
-    borderRadius: 999,
-    fontSize: 11,
-    fontWeight: 700,
+  cardDate: { fontSize: 11 },
+  cardFooter: {
+    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+    marginTop: 10, paddingTop: 10, borderTop: '1px dashed #EDF1F4',
   },
+  statusLabel: { fontSize: 11, fontWeight: 600 },
+  cardActions: { display: 'flex', gap: 4, alignItems: 'center' },
+  actionBtn: {
+    fontSize: 11, padding: '5px 10px', borderRadius: 8,
+    border: '1px solid #EDF1F4', background: 'transparent',
+    color: '#64748B', cursor: 'pointer', fontWeight: 600,
+  },
+  actionSep: { color: '#E2E8F0', fontSize: 14, userSelect: 'none' },
   editBadge: {
-    fontSize: 10,
-    fontWeight: 700,
-    color: '#8A6A2F',
-    background: '#FBF4E4',
-    border: '1px solid rgba(184,146,79,0.22)',
-    padding: '3px 8px',
-    borderRadius: 999,
-  },
-  iconBtn: {
-    background: 'transparent',
-    border: '1px solid rgba(5,11,20,0.08)',
-    cursor: 'pointer',
-    fontSize: 12,
-    padding: '8px 10px',
-    borderRadius: 999,
-    color: '#475569',
-    fontWeight: 700,
-  },
-  iconBtnDanger: {
-    background: 'transparent',
-    border: '1px solid rgba(153,27,27,0.12)',
-    cursor: 'pointer',
-    fontSize: 12,
-    padding: '8px 10px',
-    borderRadius: 999,
-    color: '#991B1B',
-    fontWeight: 700,
+    fontSize: 10, fontWeight: 700, color: '#8A6A2F',
+    background: '#FBF4E4', border: '1px solid rgba(184,146,79,0.24)',
+    padding: '3px 7px', borderRadius: 999,
   },
   historyBody: {
     padding: 16,
