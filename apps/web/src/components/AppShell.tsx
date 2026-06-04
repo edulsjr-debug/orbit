@@ -25,7 +25,6 @@ const NAV = [
   { href: '/tarefas', short: 'TA', label: 'Tarefas' },
   { href: '/projetos', short: 'PR', label: 'Projetos' },
   { href: '/notificacoes', short: 'NO', label: 'Notificações' },
-  { href: '/config', short: 'CF', label: 'Configurações' },
 ]
 
 const VERSION = process.env.NEXT_PUBLIC_APP_VERSION ?? '1.0.0'
@@ -98,6 +97,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const router = useRouter()
   const [bellOpen, setBellOpen] = useState(false)
+  const [chipOpen, setChipOpen] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
   const [snoozed, setSnoozed] = useState<Record<string, number>>({})
@@ -243,18 +243,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </nav>
 
           <div style={S.sidebarBottom}>
-            <button style={S.userCard} onClick={() => router.push('/config')}>
-              <div style={S.avatar}>{initial}</div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={S.userName}>{firstName}</div>
-                <div style={S.userMeta}>Conta e preferências</div>
-              </div>
-            </button>
-
-            <button style={S.logoutButton} onClick={logout}>
-              Sair da sessao
-            </button>
-
             <div style={S.versionBar}>
               Orbit v{VERSION} · <span style={{ fontFamily: 'monospace' }}>{COMMIT}</span>
             </div>
@@ -380,15 +368,27 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               )}
             </div>
 
-            <button style={S.userChip} onClick={() => router.push('/config')}>
-              <div style={S.avatarSmall}>{initial}</div>
-              {!isMobile && (
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                  <span style={S.userChipName}>{firstName}</span>
-                  <span style={S.userChipSub}>Perfil</span>
+            <div style={{ position: 'relative' }}>
+              <button style={S.userChip} onClick={() => setChipOpen((v) => !v)}>
+                <div style={S.avatarSmall}>{initial}</div>
+                {!isMobile && (
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                    <span style={S.userChipName}>{firstName}</span>
+                    <span style={S.userChipSub}>Perfil</span>
+                  </div>
+                )}
+              </button>
+              {chipOpen && (
+                <div style={S.chipDrop} onClick={() => setChipOpen(false)}>
+                  <button style={S.chipDropItem} onClick={() => router.push('/config')}>
+                    Configurações
+                  </button>
+                  <button style={{ ...S.chipDropItem, color: '#991B1B' }} onClick={() => void logout()}>
+                    Sair da sessão
+                  </button>
                 </div>
               )}
-            </button>
+            </div>
           </div>
         </header>
 
@@ -870,6 +870,31 @@ const S: Record<string, React.CSSProperties> = {
     fontSize: 11,
     color: '#64748B',
     marginTop: 1,
+  },
+  chipDrop: {
+    position: 'absolute',
+    top: 50,
+    right: 0,
+    background: '#FFFFFF',
+    border: '1px solid rgba(5,11,20,0.08)',
+    borderRadius: 14,
+    boxShadow: '0 12px 32px rgba(5,11,20,0.12)',
+    overflow: 'hidden',
+    zIndex: 110,
+    minWidth: 160,
+  },
+  chipDropItem: {
+    display: 'block',
+    width: '100%',
+    padding: '12px 16px',
+    textAlign: 'left',
+    background: 'transparent',
+    border: 'none',
+    borderBottom: '1px solid #F3F5F7',
+    fontSize: 13,
+    fontWeight: 600,
+    color: '#050B14',
+    cursor: 'pointer',
   },
   content: {
     flex: 1,

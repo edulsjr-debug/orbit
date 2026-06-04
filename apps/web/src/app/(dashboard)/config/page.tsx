@@ -39,30 +39,6 @@ export default function ConfigPage() {
   const [profileMsg, setProfileMsg] = useState<{ ok: boolean; text: string } | null>(null)
   const [pwMsg, setPwMsg] = useState<{ ok: boolean; text: string } | null>(null)
 
-  const [serverStatus, setServerStatus] = useState<'checking' | 'online' | 'slow' | 'offline'>(
-    'checking'
-  )
-  const [serverMs, setServerMs] = useState<number | null>(null)
-
-  useEffect(() => {
-    async function checkServer() {
-      setServerStatus('checking')
-      const t0 = Date.now()
-      try {
-        const res = await fetch('/api/health', { cache: 'no-store' })
-        const ms = Date.now() - t0
-        setServerMs(ms)
-        setServerStatus(res.ok ? (ms > 3000 ? 'slow' : 'online') : 'offline')
-      } catch {
-        setServerStatus('offline')
-        setServerMs(null)
-      }
-    }
-
-    checkServer()
-    const iv = setInterval(checkServer, 30_000)
-    return () => clearInterval(iv)
-  }, [])
 
   const [pushStatus, setPushStatus] = useState<
     'loading' | 'unsupported' | 'denied' | 'active' | 'inactive'
@@ -383,47 +359,6 @@ export default function ConfigPage() {
           </button>
         </section>
 
-        <section style={S.card}>
-          <div style={S.cardHead}>
-            <div>
-              <div style={S.cardTitle}>Informações da conta</div>
-              <div style={S.cardSub}>Estado atual do ambiente</div>
-            </div>
-          </div>
-
-          <div style={S.infoRow}>
-            <span style={S.infoLabel}>Conta criada em</span>
-            <span style={S.infoValue}>
-              {user?.createdAt ? new Date(user.createdAt).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' }) : '—'}
-            </span>
-          </div>
-          <div style={S.infoRow}>
-            <span style={S.infoLabel}>Versão do Orbit</span>
-            <span style={S.infoValue}>1.0.0</span>
-          </div>
-          <div style={{ ...S.infoRow, borderBottom: 'none' }}>
-            <span style={S.infoLabel}>Servidor</span>
-            <span style={S.serverValue}>
-              <span
-                style={{
-                  ...S.serverDot,
-                  background:
-                    serverStatus === 'online'
-                      ? '#22C55E'
-                      : serverStatus === 'slow'
-                        ? '#B8924F'
-                        : serverStatus === 'offline'
-                          ? '#991B1B'
-                          : '#94A3B8',
-                }}
-              />
-              {serverStatus === 'checking' && 'Verificando...'}
-              {serverStatus === 'online' && `Online${serverMs ? ` · ${serverMs}ms` : ''}`}
-              {serverStatus === 'slow' && `Acordando... · ${serverMs}ms`}
-              {serverStatus === 'offline' && 'Offline'}
-            </span>
-          </div>
-        </section>
       </div>
     </div>
   )
