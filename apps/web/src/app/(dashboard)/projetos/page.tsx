@@ -166,7 +166,7 @@ export default function ProjetosPage() {
                 <div
                   key={p.id}
                   style={{ ...S.card }}
-                  onClick={() => router.push(`/dashboard/projetos/${p.id}`)}
+                  onClick={() => router.push(`/projetos/${p.id}`)}
                 >
                   <div style={{ ...S.cardBar, background: p.color }} />
 

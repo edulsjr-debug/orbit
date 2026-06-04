@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Orbit — Mockup Melhorias Projetos</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0f0f10; color: #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; padding: 24px; }
+
+  h2 { font-size: 18px; font-weight: 600; color: #f1f5f9; margin-bottom: 4px; }
+  .subtitle { font-size: 13px; color: #64748b; margin-bottom: 24px; }
+  .section-label { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #475569; margin-bottom: 12px; }
+
+  /* Nav mock */
+  .nav { display: flex; align-items: center; gap: 8px; background: #18181b; border-bottom: 1px solid #27272a; padding: 10px 16px; border-radius: 10px 10px 0 0; margin-bottom: 0; }
+  .nav-logo { font-size: 13px; font-weight: 700; color: #818cf8; }
+  .nav-sep { color: #3f3f46; margin: 0 4px; }
+  .nav-item { font-size: 12px; color: #71717a; padding: 4px 8px; border-radius: 5px; cursor: pointer; }
+  .nav-item.active { color: #e2e8f0; background: #27272a; }
+
+  /* Page container */
+  .page { background: #18181b; border: 1px solid #27272a; border-radius: 10px; overflow: hidden; }
+  .page-header { padding: 16px 20px; border-bottom: 1px solid #27272a; display: flex; align-items: center; justify-content: space-between; }
+  .page-title { font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+  .page-body { padding: 20px; }
+
+  /* Badges */
+  .badge { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 20px; }
+  .badge-green { background: rgba(34,197,94,.15); color: #4ade80; border: 1px solid rgba(34,197,94,.25); }
+  .badge-red { background: rgba(239,68,68,.15); color: #f87171; border: 1px solid rgba(239,68,68,.25); }
+  .badge-yellow { background: rgba(234,179,8,.15); color: #facc15; border: 1px solid rgba(234,179,8,.25); }
+  .badge-blue { background: rgba(99,102,241,.15); color: #818cf8; border: 1px solid rgba(99,102,241,.25); }
+
+  /* Project grid */
+  .proj-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .proj-card { background: #1c1c1f; border: 1px solid #27272a; border-radius: 10px; padding: 14px; cursor: pointer; transition: border-color .15s; }
+  .proj-card:hover { border-color: #3f3f46; }
+  .proj-card.selected { border-color: #818cf8; }
+  .proj-card-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .proj-emoji-name { display: flex; align-items: center; gap: 8px; }
+  .proj-emoji { font-size: 20px; }
+  .proj-name { font-size: 13px; font-weight: 600; color: #e2e8f0; }
+  .proj-desc { font-size: 11px; color: #71717a; margin-bottom: 12px; line-height: 1.4; }
+  .proj-progress-bar { background: #27272a; border-radius: 99px; height: 5px; margin-bottom: 6px; }
+  .proj-progress-fill { height: 5px; border-radius: 99px; }
+  .proj-meta { display: flex; align-items: center; justify-content: space-between; }
+  .proj-tasks-count { font-size: 11px; color: #52525b; }
+  .proj-deadline { font-size: 11px; color: #52525b; }
+
+  /* Detail page */
+  .detail-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 20px; }
+  .detail-title-row { display: flex; align-items: center; gap: 10px; }
+  .detail-emoji { font-size: 28px; }
+  .detail-name { font-size: 20px; font-weight: 700; color: #f1f5f9; }
+  .detail-desc { font-size: 13px; color: #71717a; margin-top: 2px; }
+
+  .metrics-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 20px; }
+  .metric-card { background: #1c1c1f; border: 1px solid #27272a; border-radius: 8px; padding: 12px 14px; }
+  .metric-value { font-size: 22px; font-weight: 700; color: #e2e8f0; }
+  .metric-label { font-size: 11px; color: #52525b; margin-top: 2px; }
+
+  .progress-section { background: #1c1c1f; border: 1px solid #27272a; border-radius: 8px; padding: 14px 16px; margin-bottom: 20px; }
+  .progress-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .progress-pct { font-size: 26px; font-weight: 700; color: #818cf8; }
+  .progress-bar-big { background: #27272a; border-radius: 99px; height: 8px; }
+  .progress-bar-fill { height: 8px; border-radius: 99px; background: linear-gradient(90deg, #6366f1, #818cf8); }
+
+  .tasks-list { display: flex; flex-direction: column; gap: 6px; }
+  .task-row { background: #1c1c1f; border: 1px solid #27272a; border-radius: 7px; padding: 10px 12px; display: flex; align-items: center; gap: 10px; }
+  .task-status-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .dot-done { background: #4ade80; }
+  .dot-progress { background: #818cf8; }
+  .dot-pending { background: #3f3f46; border: 1.5px solid #52525b; }
+  .task-title { font-size: 12px; color: #d4d4d8; flex: 1; }
+  .task-title.done { text-decoration: line-through; color: #52525b; }
+  .task-due { font-size: 11px; color: #52525b; }
+  .task-priority { font-size: 10px; font-weight: 600; padding: 2px 6px; border-radius: 4px; }
+  .prio-high { background: rgba(239,68,68,.15); color: #f87171; }
+  .prio-med { background: rgba(234,179,8,.1); color: #facc15; }
+  .prio-low { background: rgba(100,116,139,.15); color: #94a3b8; }
+
+  /* Filter bar */
+  .filter-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
+  .filter-btn { font-size: 11px; padding: 5px 10px; border-radius: 6px; border: 1px solid #27272a; background: #1c1c1f; color: #71717a; cursor: pointer; }
+  .filter-btn.active { background: rgba(99,102,241,.15); color: #818cf8; border-color: rgba(99,102,241,.35); }
+  .filter-select { font-size: 11px; padding: 5px 10px; border-radius: 6px; border: 1px solid rgba(99,102,241,.35); background: rgba(99,102,241,.1); color: #818cf8; cursor: pointer; }
+
+  /* Layout */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .annotation { font-size: 11px; color: #818cf8; background: rgba(99,102,241,.1); border: 1px dashed rgba(99,102,241,.3); border-radius: 6px; padding: 6px 10px; margin-top: 8px; display: flex; align-items: flex-start; gap: 6px; }
+  .annot-arrow { flex-shrink: 0; margin-top: 1px; }
+
+  hr { border: none; border-top: 1px solid #27272a; margin: 24px 0; }
+
+  /* Top intro */
+  .intro { margin-bottom: 28px; }
+  .intro h1 { font-size: 18px; font-weight: 700; color: #f1f5f9; margin-bottom: 4px; }
+  .intro p { font-size: 13px; color: #64748b; }
+</style>
+</head>
+<body>
+
+<div class="intro">
+  <h1>Orbit — Melhorias de Projetos (Abordagem B)</h1>
+  <p>Mockup das 4 mudanças: badge de status, progresso nos cards, página de detalhe, filtro de tarefas por projeto.</p>
+</div>
+
+<!-- SECTION 1: PROJECT GRID WITH STATUS BADGE -->
+<div class="section-label">1 · Cards de Projeto — com badge de status + progresso</div>
+
+<div class="page">
+  <div class="nav">
+    <span class="nav-logo">orbit</span>
+    <span class="nav-sep">/</span>
+    <span class="nav-item">Dashboard</span>
+    <span class="nav-item">Compromissos</span>
+    <span class="nav-item">Tarefas</span>
+    <span class="nav-item active">Projetos</span>
+  </div>
+  <div class="page-body">
+    <div class="proj-grid">
+
+      <!-- Card 1: no prazo -->
+      <div class="proj-card">
+        <div class="proj-card-top">
+          <div class="proj-emoji-name">
+            <span class="proj-emoji">🚀</span>
+            <span class="proj-name">Orbit v2</span>
+          </div>
+          <span class="badge badge-green">✓ No prazo</span>
+        </div>
+        <div class="proj-desc">Novos módulos e melhorias de UX para o produto principal.</div>
+        <div class="proj-progress-bar"><div class="proj-progress-fill" style="width:72%;background:#4ade80"></div></div>
+        <div class="proj-meta">
+          <span class="proj-tasks-count">13 / 18 tarefas</span>
+          <span class="proj-deadline">prazo 30 jun</span>
+        </div>
+      </div>
+
+      <!-- Card 2: atrasado -->
+      <div class="proj-card">
+        <div class="proj-card-top">
+          <div class="proj-emoji-name">
+            <span class="proj-emoji">📊</span>
+            <span class="proj-name">Dashboard Analytics</span>
+          </div>
+          <span class="badge badge-red">⚠ Atrasado</span>
+        </div>
+        <div class="proj-desc">Métricas e relatórios consolidados para gestores.</div>
+        <div class="proj-progress-bar"><div class="proj-progress-fill" style="width:30%;background:#f87171"></div></div>
+        <div class="proj-meta">
+          <span class="proj-tasks-count">3 / 10 tarefas</span>
+          <span class="proj-deadline">prazo 01 jun</span>
+        </div>
+      </div>
+
+      <!-- Card 3: concluído -->
+      <div class="proj-card">
+        <div class="proj-card-top">
+          <div class="proj-emoji-name">
+            <span class="proj-emoji">🔔</span>
+            <span class="proj-name">Notificações Push</span>
+          </div>
+          <span class="badge badge-blue">● Concluído</span>
+        </div>
+        <div class="proj-desc">Integração com web-push e BullMQ para alertas em tempo real.</div>
+        <div class="proj-progress-bar"><div class="proj-progress-fill" style="width:100%;background:#818cf8"></div></div>
+        <div class="proj-meta">
+          <span class="proj-tasks-count">8 / 8 tarefas</span>
+          <span class="proj-deadline">entregue 20 mai</span>
+        </div>
+      </div>
+
+    </div>
+    <div class="annotation">
+      <span class="annot-arrow">→</span>
+      <span>Badge calculado automaticamente: <strong>Concluído</strong> quando 100% das tarefas feitas · <strong>Atrasado</strong> quando deadline passou e progresso &lt; 100% · <strong>No prazo</strong> caso contrário. Zero campos novos no banco.</span>
+    </div>
+  </div>
+</div>
+
+<hr>
+
+<!-- SECTION 2: PROJECT DETAIL PAGE -->
+<div class="section-label">2 · Página de Detalhe do Projeto — /dashboard/projetos/[id]</div>
+
+<div class="page">
+  <div class="nav">
+    <span class="nav-logo">orbit</span>
+    <span class="nav-sep">/</span>
+    <span class="nav-item">Projetos</span>
+    <span class="nav-sep">/</span>
+    <span class="nav-item active">🚀 Orbit v2</span>
+  </div>
+  <div class="page-body">
+
+    <div class="detail-header">
+      <div>
+        <div class="detail-title-row">
+          <span class="detail-emoji">🚀</span>
+          <div>
+            <div class="detail-name">Orbit v2</div>
+            <div class="detail-desc">Novos módulos e melhorias de UX para o produto principal.</div>
+          </div>
+        </div>
+      </div>
+      <span class="badge badge-green" style="font-size:12px;padding:5px 12px">✓ No prazo</span>
+    </div>
+
+    <!-- Métricas -->
+    <div class="metrics-row">
+      <div class="metric-card">
+        <div class="metric-value">18</div>
+        <div class="metric-label">Total de tarefas</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-value" style="color:#4ade80">13</div>
+        <div class="metric-label">Concluídas</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-value" style="color:#818cf8">3</div>
+        <div class="metric-label">Em andamento</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-value" style="color:#52525b">2</div>
+        <div class="metric-label">Pendentes</div>
+      </div>
+    </div>
+
+    <!-- Progress bar -->
+    <div class="progress-section">
+      <div class="progress-header">
+        <div>
+          <div style="font-size:13px;font-weight:600;color:#e2e8f0;margin-bottom:2px">Progresso geral</div>
+          <div style="font-size:11px;color:#52525b">Prazo: 30 de junho de 2026</div>
+        </div>
+        <div class="progress-pct">72%</div>
+      </div>
+      <div class="progress-bar-big">
+        <div class="progress-bar-fill" style="width:72%"></div>
+      </div>
+    </div>
+
+    <!-- Task list -->
+    <div class="section-label">Tarefas do projeto</div>
+
+    <div class="filter-bar">
+      <button class="filter-btn active">Todas</button>
+      <button class="filter-btn">Pendentes</button>
+      <button class="filter-btn">Em andamento</button>
+      <button class="filter-btn">Concluídas</button>
+    </div>
+
+    <div class="tasks-list">
+      <div class="task-row">
+        <div class="task-status-dot dot-done"></div>
+        <span class="task-title done">Configurar BullMQ e Redis</span>
+        <span class="task-priority prio-high">alta</span>
+        <span class="task-due">concluído</span>
+      </div>
+      <div class="task-row">
+        <div class="task-status-dot dot-done"></div>
+        <span class="task-title done">Implementar histórico amigável</span>
+        <span class="task-priority prio-high">alta</span>
+        <span class="task-due">concluído</span>
+      </div>
+      <div class="task-row">
+        <div class="task-status-dot dot-progress"></div>
+        <span class="task-title">Página de detalhe de projetos</span>
+        <span class="task-priority prio-high">alta</span>
+        <span class="task-due">jun 10</span>
+      </div>
+      <div class="task-row">
+        <div class="task-status-dot dot-progress"></div>
+        <span class="task-title">Badge de status no card de projeto</span>
+        <span class="task-priority prio-med">média</span>
+        <span class="task-due">jun 10</span>
+      </div>
+      <div class="task-row">
+        <div class="task-status-dot dot-pending"></div>
+        <span class="task-title">Filtro de tarefas por projeto</span>
+        <span class="task-priority prio-med">média</span>
+        <span class="task-due">jun 15</span>
+      </div>
+      <div class="task-row">
+        <div class="task-status-dot dot-pending"></div>
+        <span class="task-title">Testes de regressão notificações</span>
+        <span class="task-priority prio-low">baixa</span>
+        <span class="task-due">jun 20</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<hr>
+
+<!-- SECTION 3: TASKS FILTER -->
+<div class="section-label">3 · Filtro por Projeto — Página de Tarefas</div>
+
+<div class="page">
+  <div class="nav">
+    <span class="nav-logo">orbit</span>
+    <span class="nav-sep">/</span>
+    <span class="nav-item active">Tarefas</span>
+  </div>
+  <div class="page-body">
+
+    <div class="filter-bar">
+      <button class="filter-btn active">Todas</button>
+      <button class="filter-btn">Pendentes</button>
+      <button class="filter-btn">Em andamento</button>
+      <button class="filter-btn">Concluídas</button>
+      <!-- NOVO: filtro por projeto -->
+      <select class="filter-select">
+        <option>📁 Todos os projetos</option>
+        <option selected>🚀 Orbit v2</option>
+        <option>📊 Dashboard Analytics</option>
+        <option>🔔 Notificações Push</option>
+      </select>
+    </div>
+
+    <div class="tasks-list">
+      <div class="task-row">
+        <div class="task-status-dot dot-progress"></div>
+        <span class="task-title">Página de detalhe de projetos</span>
+        <span class="badge badge-blue" style="font-size:10px;padding:2px 6px">🚀 Orbit v2</span>
+        <span class="task-priority prio-high">alta</span>
+        <span class="task-due">jun 10</span>
+      </div>
+      <div class="task-row">
+        <div class="task-status-dot dot-progress"></div>
+        <span class="task-title">Badge de status no card de projeto</span>
+        <span class="badge badge-blue" style="font-size:10px;padding:2px 6px">🚀 Orbit v2</span>
+        <span class="task-priority prio-med">média</span>
+        <span class="task-due">jun 10</span>
+      </div>
+      <div class="task-row">
+        <div class="task-status-dot dot-pending"></div>
+        <span class="task-title">Filtro de tarefas por projeto</span>
+        <span class="badge badge-blue" style="font-size:10px;padding:2px 6px">🚀 Orbit v2</span>
+        <span class="task-priority prio-med">média</span>
+        <span class="task-due">jun 15</span>
+      </div>
+    </div>
+
+    <div class="annotation" style="margin-top:12px">
+      <span class="annot-arrow">→</span>
+      <span>Dropdown de projeto adicionado à barra de filtros existente. Selecionar um projeto chama <code style="background:#1c1c1f;padding:1px 4px;border-radius:3px;font-size:10px">GET /tasks?projectId=xxx</code> (já suportado pela API). Nenhum endpoint novo necessário.</span>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>

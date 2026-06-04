@@ -1,4 +1,4 @@
-// apps/web/src/app/dashboard/projetos/[id]/page.tsx
+// apps/web/src/app/(dashboard)/projetos/[id]/page.tsx
 'use client'
 
 import { use, useState } from 'react'
@@ -86,7 +86,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
     <div>
       {/* Breadcrumb */}
       <div style={S.breadcrumb}>
-        <button style={S.breadcrumbLink} onClick={() => router.push('/dashboard/projetos')}>
+        <button style={S.breadcrumbLink} onClick={() => router.push('/projetos')}>
           Projetos
         </button>
         <span style={S.breadcrumbSep}>/</span>

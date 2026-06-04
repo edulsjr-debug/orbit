@@ -44,7 +44,7 @@ export default function LoginPage() {
       } else {
         await api.post('/auth/register', { name, email, password })
       }
-      router.push('/dashboard')
+      router.push('/inicio')
       router.refresh()
     } catch (err: any) {
       setError(err.message)

@@ -20,12 +20,12 @@ type Notification = {
 const fetcher = (url: string) => api.get<any>(url).then((r: any) => r.data)
 
 const NAV = [
-  { href: '/dashboard', short: 'IN', label: 'Inicio' },
-  { href: '/dashboard/compromissos', short: 'CO', label: 'Compromissos' },
-  { href: '/dashboard/tarefas', short: 'TA', label: 'Tarefas' },
-  { href: '/dashboard/projetos', short: 'PR', label: 'Projetos' },
-  { href: '/dashboard/notificacoes', short: 'NO', label: 'Notificações' },
-  { href: '/dashboard/config', short: 'CF', label: 'Configurações' },
+  { href: '/inicio', short: 'IN', label: 'Inicio' },
+  { href: '/compromissos', short: 'CO', label: 'Compromissos' },
+  { href: '/tarefas', short: 'TA', label: 'Tarefas' },
+  { href: '/projetos', short: 'PR', label: 'Projetos' },
+  { href: '/notificacoes', short: 'NO', label: 'Notificações' },
+  { href: '/config', short: 'CF', label: 'Configurações' },
 ]
 
 const VERSION = process.env.NEXT_PUBLIC_APP_VERSION ?? '1.0.0'
@@ -50,14 +50,10 @@ function timeAgo(date: string) {
 
 function routeForNotification(notification: Pick<Notification, 'entityType'>) {
   switch (notification.entityType) {
-    case 'event':
-      return '/dashboard/compromissos'
-    case 'task':
-      return '/dashboard/tarefas'
-    case 'project':
-      return '/dashboard/projetos'
-    default:
-      return '/dashboard/notificacoes'
+    case 'event':   return '/compromissos'
+    case 'task':    return '/tarefas'
+    case 'project': return '/projetos'
+    default:        return '/notificacoes'
   }
 }
 
@@ -247,7 +243,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </nav>
 
           <div style={S.sidebarBottom}>
-            <button style={S.userCard} onClick={() => router.push('/dashboard/config')}>
+            <button style={S.userCard} onClick={() => router.push('/config')}>
               <div style={S.avatar}>{initial}</div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={S.userName}>{firstName}</div>
@@ -374,7 +370,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                       style={S.bellFooterLink}
                       onClick={() => {
                         setBellOpen(false)
-                        router.push('/dashboard/notificacoes')
+                        router.push('/notificacoes')
                       }}
                     >
                       Ver central completa
@@ -384,7 +380,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               )}
             </div>
 
-            <button style={S.userChip} onClick={() => router.push('/dashboard/config')}>
+            <button style={S.userChip} onClick={() => router.push('/config')}>
               <div style={S.avatarSmall}>{initial}</div>
               {!isMobile && (
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>

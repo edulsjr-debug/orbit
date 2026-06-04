@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Orbit — Comparação Visual</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0f0f10; color: #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; padding: 24px; }
+
+  .page-title { font-size: 18px; font-weight: 700; color: #f1f5f9; margin-bottom: 4px; }
+  .page-sub { font-size: 13px; color: #64748b; margin-bottom: 28px; }
+  .section-label { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #475569; margin-bottom: 16px; }
+
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 32px; }
+
+  /* Option wrapper */
+  .option-wrap { cursor: pointer; border-radius: 12px; border: 2px solid #27272a; overflow: hidden; transition: border-color .2s, box-shadow .2s; }
+  .option-wrap:hover { border-color: #3f3f46; }
+  .option-wrap.selected { border-color: #818cf8; box-shadow: 0 0 0 3px rgba(99,102,241,.2); }
+  .option-label { background: #1c1c1f; padding: 10px 14px; border-bottom: 1px solid #27272a; display: flex; align-items: center; justify-content: space-between; }
+  .option-letter { width: 22px; height: 22px; border-radius: 50%; background: #27272a; color: #818cf8; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+  .option-name { font-size: 12px; font-weight: 600; color: #e2e8f0; }
+  .option-body { padding: 14px; background: #18181b; }
+  .option-desc { font-size: 11px; color: #64748b; margin-top: 10px; line-height: 1.5; padding: 8px 10px; background: #1c1c1f; border-radius: 6px; border-left: 3px solid #27272a; }
+
+  /* ===== OPÇÃO A — SUTIL / MINIMALISTA ===== */
+  .a-card { background: #1c1c1f; border: 1px solid #27272a; border-radius: 8px; padding: 14px; }
+  .a-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .a-name { font-size: 13px; font-weight: 600; color: #d4d4d8; display: flex; align-items: center; gap: 6px; }
+  .a-dot { width: 7px; height: 7px; border-radius: 50%; }
+  .a-progress-text { font-size: 11px; color: #52525b; margin-bottom: 6px; }
+  .a-bar { background: #27272a; height: 3px; border-radius: 99px; margin-bottom: 8px; }
+  .a-bar-fill { height: 3px; border-radius: 99px; }
+  .a-footer { display: flex; align-items: center; justify-content: space-between; }
+  .a-count { font-size: 11px; color: #52525b; }
+  .a-status-text { font-size: 10px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
+
+  /* ===== OPÇÃO B — DASHBOARD (o que mostrei antes) ===== */
+  .b-card { background: #1c1c1f; border: 1px solid #27272a; border-radius: 10px; padding: 14px; }
+  .b-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 10px; }
+  .b-name { font-size: 13px; font-weight: 600; color: #e2e8f0; display: flex; align-items: center; gap: 7px; }
+  .badge { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 600; padding: 3px 7px; border-radius: 20px; white-space: nowrap; }
+  .badge-green { background: rgba(34,197,94,.12); color: #4ade80; border: 1px solid rgba(34,197,94,.2); }
+  .badge-red   { background: rgba(239,68,68,.12); color: #f87171; border: 1px solid rgba(239,68,68,.2); }
+  .badge-indigo { background: rgba(99,102,241,.12); color: #818cf8; border: 1px solid rgba(99,102,241,.2); }
+  .b-desc { font-size: 11px; color: #71717a; margin-bottom: 12px; }
+  .b-bar { background: #27272a; height: 5px; border-radius: 99px; margin-bottom: 6px; }
+  .b-bar-fill { height: 5px; border-radius: 99px; }
+  .b-footer { display: flex; align-items: center; justify-content: space-between; }
+  .b-count { font-size: 11px; color: #52525b; }
+  .b-deadline { font-size: 11px; color: #52525b; }
+
+  /* ===== OPÇÃO C — COR DO PROJETO ===== */
+  .c-card { border-radius: 10px; overflow: hidden; border: 1px solid #27272a; }
+  .c-accent { height: 4px; }
+  .c-body { background: #1c1c1f; padding: 14px; }
+  .c-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .c-name { font-size: 13px; font-weight: 600; color: #e2e8f0; display: flex; align-items: center; gap: 7px; }
+  .c-status-pill { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 99px; }
+  .c-desc { font-size: 11px; color: #71717a; margin-bottom: 12px; }
+  .c-progress-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .c-pct { font-size: 13px; font-weight: 700; min-width: 36px; }
+  .c-bar { flex: 1; background: #27272a; height: 6px; border-radius: 99px; }
+  .c-bar-fill { height: 6px; border-radius: 99px; }
+  .c-footer { display: flex; align-items: center; justify-content: space-between; }
+  .c-count { font-size: 11px; color: #52525b; }
+  .c-deadline { font-size: 11px; color: #52525b; }
+
+  /* Recommendation banner */
+  .rec-banner { background: rgba(99,102,241,.08); border: 1px solid rgba(99,102,241,.25); border-radius: 8px; padding: 12px 16px; display: flex; align-items: flex-start; gap: 10px; margin-top: 4px; }
+  .rec-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+  .rec-text { font-size: 12px; color: #a5b4fc; line-height: 1.6; }
+  .rec-text strong { color: #c7d2fe; }
+
+  /* click instruction */
+  .click-hint { text-align: center; font-size: 12px; color: #3f3f46; margin-bottom: 20px; }
+</style>
+<script>
+  function select(id) {
+    document.querySelectorAll('.option-wrap').forEach(el => el.classList.remove('selected'));
+    document.getElementById(id).classList.add('selected');
+    if (window.__orbitSelect) window.__orbitSelect(id);
+  }
+  // hook for superpowers selection tracking
+  document.addEventListener('DOMContentLoaded', () => {
+    if (window.toggleSelect) return; // frame already handles it
+  });
+</script>
+</head>
+<body>
+
+<div class="page-title">Qual direção visual para os cards de projeto?</div>
+<div class="page-sub">Clique para selecionar a que você prefere.</div>
+
+<div class="click-hint">↓ Clique em uma opção para selecionar</div>
+
+<div class="grid3">
+
+  <!-- OPTION A -->
+  <div class="option-wrap" id="opt-a" onclick="select('opt-a')">
+    <div class="option-label">
+      <div style="display:flex;align-items:center;gap:8px">
+        <div class="option-letter">A</div>
+        <span class="option-name">Sutil / Minimalista</span>
+      </div>
+    </div>
+    <div class="option-body">
+      <div class="a-card">
+        <div class="a-top">
+          <div class="a-name">
+            <span>🚀</span> Orbit v2
+          </div>
+          <div class="a-dot" style="background:#4ade80;margin-top:3px"></div>
+        </div>
+        <div class="a-progress-text">13 de 18 tarefas concluídas · 72%</div>
+        <div class="a-bar"><div class="a-bar-fill" style="width:72%;background:#4ade80"></div></div>
+        <div class="a-footer">
+          <span class="a-count">prazo 30 jun</span>
+          <span class="a-status-text" style="color:#4ade80">no prazo</span>
+        </div>
+      </div>
+      <div class="a-card" style="margin-top:8px">
+        <div class="a-top">
+          <div class="a-name">
+            <span>📊</span> Analytics
+          </div>
+          <div class="a-dot" style="background:#f87171;margin-top:3px"></div>
+        </div>
+        <div class="a-progress-text">3 de 10 tarefas concluídas · 30%</div>
+        <div class="a-bar"><div class="a-bar-fill" style="width:30%;background:#f87171"></div></div>
+        <div class="a-footer">
+          <span class="a-count">prazo 01 jun</span>
+          <span class="a-status-text" style="color:#f87171">atrasado</span>
+        </div>
+      </div>
+      <div class="option-desc">Indicadores pequenos e discretos. Status como texto. Barra fina (3px). Mantém o visual limpo atual do Orbit.</div>
+    </div>
+  </div>
+
+  <!-- OPTION B -->
+  <div class="option-wrap" id="opt-b" onclick="select('opt-b')">
+    <div class="option-label">
+      <div style="display:flex;align-items:center;gap:8px">
+        <div class="option-letter">B</div>
+        <span class="option-name">Dashboard / Badge</span>
+      </div>
+      <span style="font-size:10px;font-weight:600;color:#818cf8;background:rgba(99,102,241,.12);padding:2px 7px;border-radius:10px">recomendado</span>
+    </div>
+    <div class="option-body">
+      <div class="b-card">
+        <div class="b-top">
+          <div class="b-name"><span>🚀</span> Orbit v2</div>
+          <span class="badge badge-green">✓ No prazo</span>
+        </div>
+        <div class="b-desc">Módulos e melhorias de UX</div>
+        <div class="b-bar"><div class="b-bar-fill" style="width:72%;background:#4ade80"></div></div>
+        <div class="b-footer">
+          <span class="b-count">13 / 18 tarefas</span>
+          <span class="b-deadline">prazo 30 jun</span>
+        </div>
+      </div>
+      <div class="b-card" style="margin-top:8px">
+        <div class="b-top">
+          <div class="b-name"><span>📊</span> Analytics</div>
+          <span class="badge badge-red">⚠ Atrasado</span>
+        </div>
+        <div class="b-desc">Métricas e relatórios</div>
+        <div class="b-bar"><div class="b-bar-fill" style="width:30%;background:#f87171"></div></div>
+        <div class="b-footer">
+          <span class="b-count">3 / 10 tarefas</span>
+          <span class="b-deadline">prazo 01 jun</span>
+        </div>
+      </div>
+      <div class="option-desc">Badge colorido com ícone. Barra média (5px). Hierarquia clara: nome → status → progresso. Padrão de apps como Linear e Notion.</div>
+    </div>
+  </div>
+
+  <!-- OPTION C -->
+  <div class="option-wrap" id="opt-c" onclick="select('opt-c')">
+    <div class="option-label">
+      <div style="display:flex;align-items:center;gap:8px">
+        <div class="option-letter">C</div>
+        <span class="option-name">Cor do Projeto</span>
+      </div>
+    </div>
+    <div class="option-body">
+      <div class="c-card">
+        <div class="c-accent" style="background:#6366f1"></div>
+        <div class="c-body">
+          <div class="c-top">
+            <div class="c-name"><span>🚀</span> Orbit v2</div>
+            <span class="c-status-pill" style="background:rgba(99,221,100,.12);color:#4ade80">No prazo</span>
+          </div>
+          <div class="c-desc">Módulos e melhorias de UX</div>
+          <div class="c-progress-row">
+            <span class="c-pct" style="color:#6366f1">72%</span>
+            <div class="c-bar"><div class="c-bar-fill" style="width:72%;background:#6366f1"></div></div>
+          </div>
+          <div class="c-footer">
+            <span class="c-count">13 / 18 tarefas</span>
+            <span class="c-deadline">prazo 30 jun</span>
+          </div>
+        </div>
+      </div>
+      <div class="c-card" style="margin-top:8px">
+        <div class="c-accent" style="background:#ec4899"></div>
+        <div class="c-body">
+          <div class="c-top">
+            <div class="c-name"><span>📊</span> Analytics</div>
+            <span class="c-status-pill" style="background:rgba(239,68,68,.12);color:#f87171">Atrasado</span>
+          </div>
+          <div class="c-desc">Métricas e relatórios</div>
+          <div class="c-progress-row">
+            <span class="c-pct" style="color:#ec4899">30%</span>
+            <div class="c-bar"><div class="c-bar-fill" style="width:30%;background:#ec4899"></div></div>
+          </div>
+          <div class="c-footer">
+            <span class="c-count">3 / 10 tarefas</span>
+            <span class="c-deadline">prazo 01 jun</span>
+          </div>
+        </div>
+      </div>
+      <div class="option-desc">Faixa colorida no topo usa a cor do projeto. Porcentagem em destaque ao lado da barra. Mais personalidade, cada card tem identidade própria.</div>
+    </div>
+  </div>
+
+</div>
+
+<div class="rec-banner">
+  <span class="rec-icon">💡</span>
+  <div class="rec-text">
+    <strong>Minha preferência: Opção B.</strong> O badge de status é o elemento mais importante — precisa ser visto rapidamente, sem precisar interpretar uma bolinha de cor. A opção C é visualmente rica mas a cor do projeto (que o usuário escolhe) pode colidir com a cor do status, criando confusão. A opção A é limpa demais — o status fica escondido como texto pequeno no canto. O B equilibra os dois: chamativo onde importa, limpo no resto.
+  </div>
+</div>
+
+</body>
+</html>

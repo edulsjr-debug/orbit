@@ -4,7 +4,7 @@ self.addEventListener('push', (event) => {
   const body = payload.body || ''
   const icon = payload.icon || '/icon-192-v2.png'
   const badge = '/icon-192-v2.png'
-  const url = payload.url || '/dashboard'
+  const url = payload.url || '/inicio'
 
   event.waitUntil(
     Promise.all([
@@ -32,7 +32,7 @@ self.addEventListener('push', (event) => {
 self.addEventListener('notificationclick', (event) => {
   event.notification.close()
 
-  const url = event.notification.data?.url || '/dashboard'
+  const url = event.notification.data?.url || '/inicio'
 
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {

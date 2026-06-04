@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Orbit — Detalhe do Projeto (Estilo C)</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0f0f10; color: #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; padding: 0; }
+
+  /* Shell */
+  .shell { max-width: 900px; margin: 0 auto; padding: 24px; }
+  .page-title { font-size: 15px; font-weight: 700; color: #f1f5f9; margin-bottom: 4px; }
+  .page-sub { font-size: 12px; color: #52525b; margin-bottom: 24px; }
+
+  /* Nav */
+  .nav { display: flex; align-items: center; gap: 6px; background: #18181b; border: 1px solid #27272a; border-radius: 8px; padding: 8px 14px; margin-bottom: 0; font-size: 12px; color: #52525b; }
+  .nav-logo { color: #818cf8; font-weight: 700; }
+  .nav-sep { color: #3f3f46; }
+  .nav-crumb { color: #71717a; }
+  .nav-crumb.active { color: #e2e8f0; }
+
+  /* Page */
+  .page { background: #18181b; border: 1px solid #27272a; border-radius: 0 0 12px 12px; overflow: hidden; }
+
+  /* Hero — accent color top */
+  .hero { border-top: 4px solid var(--proj-color, #6366f1); padding: 20px 24px 0; }
+  .hero-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+  .hero-left { display: flex; align-items: center; gap: 12px; }
+  .hero-emoji { font-size: 32px; }
+  .hero-name { font-size: 20px; font-weight: 700; color: #f1f5f9; }
+  .hero-desc { font-size: 12px; color: #71717a; margin-top: 2px; }
+  .status-pill { display: inline-flex; align-items: center; gap-4px; font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 99px; white-space: nowrap; }
+  .pill-green { background: rgba(34,197,94,.12); color: #4ade80; border: 1px solid rgba(34,197,94,.2); }
+  .pill-red   { background: rgba(239,68,68,.12); color: #f87171; border: 1px solid rgba(239,68,68,.2); }
+  .pill-blue  { background: rgba(99,102,241,.12); color: #818cf8; border: 1px solid rgba(99,102,241,.2); }
+
+  /* Progress hero */
+  .progress-hero { display: flex; align-items: center; gap: 16px; margin-bottom: 0; padding-bottom: 20px; }
+  .pct-big { font-size: 36px; font-weight: 800; color: var(--proj-color, #6366f1); line-height: 1; }
+  .pct-sub { font-size: 11px; color: #52525b; margin-top: 2px; }
+  .progress-right { flex: 1; }
+  .prog-bar-wrap { background: #27272a; border-radius: 99px; height: 8px; margin-bottom: 6px; overflow: hidden; }
+  .prog-bar-fill { height: 8px; border-radius: 99px; background: var(--proj-color, #6366f1); transition: width .6s ease; }
+  .prog-labels { display: flex; justify-content: space-between; font-size: 11px; color: #52525b; }
+
+  /* Metrics */
+  .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: #27272a; border-top: 1px solid #27272a; }
+  .metric { background: #18181b; padding: 14px 18px; }
+  .metric-val { font-size: 20px; font-weight: 700; }
+  .metric-lbl { font-size: 11px; color: #52525b; margin-top: 2px; }
+
+  /* Body */
+  .body { padding: 20px 24px; }
+  .section-hd { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .section-title { font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #475569; }
+
+  /* Filter tabs */
+  .tabs { display: flex; gap: 6px; }
+  .tab { font-size: 11px; padding: 4px 10px; border-radius: 6px; border: 1px solid #27272a; background: transparent; color: #71717a; cursor: pointer; }
+  .tab.active { background: rgba(99,102,241,.12); color: #818cf8; border-color: rgba(99,102,241,.3); }
+
+  /* Task rows */
+  .tasks { display: flex; flex-direction: column; gap: 6px; }
+  .task { background: #1c1c1f; border: 1px solid #27272a; border-radius: 7px; padding: 10px 14px; display: flex; align-items: center; gap: 10px; }
+  .task-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .dot-done { background: #4ade80; }
+  .dot-prog { background: var(--proj-color, #6366f1); }
+  .dot-pend { background: transparent; border: 1.5px solid #3f3f46; }
+  .task-name { flex: 1; font-size: 12px; color: #d4d4d8; }
+  .task-name.done { text-decoration: line-through; color: #3f3f46; }
+  .prio { font-size: 10px; font-weight: 600; padding: 2px 6px; border-radius: 4px; }
+  .p-high { background: rgba(239,68,68,.1); color: #f87171; }
+  .p-med  { background: rgba(234,179,8,.1); color: #facc15; }
+  .p-low  { background: rgba(100,116,139,.1); color: #94a3b8; }
+  .task-due { font-size: 11px; color: #52525b; min-width: 60px; text-align: right; }
+
+  /* Two-project demo */
+  .demo-label { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #475569; margin-bottom: 10px; margin-top: 28px; }
+  .proj-switch { display: flex; gap: 8px; margin-bottom: 0; }
+  .proj-btn { display: flex; align-items: center; gap: 6px; font-size: 12px; padding: 6px 12px; border-radius: 7px; border: 1px solid #27272a; background: #1c1c1f; color: #71717a; cursor: pointer; transition: all .15s; }
+  .proj-btn.active { color: #e2e8f0; }
+  .proj-btn-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+  .annotation { font-size: 11px; color: #818cf8; background: rgba(99,102,241,.08); border: 1px dashed rgba(99,102,241,.25); border-radius: 6px; padding: 8px 12px; margin-top: 16px; line-height: 1.6; }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <div class="page-title">Página de Detalhe — Estilo C (Cor do Projeto)</div>
+  <div class="page-sub">Como fica a rota /dashboard/projetos/[id] com a identidade visual de cada projeto.</div>
+
+  <!-- Project selector demo -->
+  <div class="demo-label">Experimente trocar de projeto ↓</div>
+  <div class="proj-switch" style="margin-bottom:12px">
+    <button class="proj-btn active" id="btn-indigo" onclick="switchProject('indigo','🚀','Orbit v2','Módulos e melhorias de UX','72','13','18','3','2','No prazo','green')">
+      <div class="proj-btn-dot" style="background:#6366f1"></div> 🚀 Orbit v2
+    </button>
+    <button class="proj-btn" id="btn-pink" onclick="switchProject('pink','📊','Analytics','Métricas e relatórios','30','3','10','2','5','Atrasado','red')">
+      <div class="proj-btn-dot" style="background:#ec4899"></div> 📊 Analytics
+    </button>
+    <button class="proj-btn" id="btn-emerald" onclick="switchProject('emerald','🔔','Notif. Push','Alertas em tempo real','100','8','8','0','0','Concluído','blue')">
+      <div class="proj-btn-dot" style="background:#10b981"></div> 🔔 Notif. Push
+    </button>
+  </div>
+
+  <div class="nav">
+    <span class="nav-logo">orbit</span>
+    <span class="nav-sep">/</span>
+    <span class="nav-crumb">Projetos</span>
+    <span class="nav-sep">/</span>
+    <span class="nav-crumb active" id="nav-name">🚀 Orbit v2</span>
+  </div>
+
+  <div class="page" id="proj-page" style="--proj-color:#6366f1">
+
+    <div class="hero">
+      <div class="hero-top">
+        <div class="hero-left">
+          <span class="hero-emoji" id="hero-emoji">🚀</span>
+          <div>
+            <div class="hero-name" id="hero-name">Orbit v2</div>
+            <div class="hero-desc" id="hero-desc">Módulos e melhorias de UX</div>
+          </div>
+        </div>
+        <span class="status-pill pill-green" id="status-pill">✓ No prazo</span>
+      </div>
+
+      <div class="progress-hero">
+        <div>
+          <div class="pct-big" id="pct-big">72%</div>
+          <div class="pct-sub">concluído</div>
+        </div>
+        <div class="progress-right">
+          <div class="prog-bar-wrap">
+            <div class="prog-bar-fill" id="prog-fill" style="width:72%"></div>
+          </div>
+          <div class="prog-labels">
+            <span id="done-count">13 tarefas concluídas</span>
+            <span id="total-count">18 no total</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="metrics">
+      <div class="metric">
+        <div class="metric-val" id="m-total">18</div>
+        <div class="metric-lbl">Total</div>
+      </div>
+      <div class="metric">
+        <div class="metric-val" style="color:#4ade80" id="m-done">13</div>
+        <div class="metric-lbl">Concluídas</div>
+      </div>
+      <div class="metric">
+        <div class="metric-val" id="m-prog" style="color:var(--proj-color)">3</div>
+        <div class="metric-lbl">Em andamento</div>
+      </div>
+      <div class="metric">
+        <div class="metric-val" style="color:#52525b" id="m-pend">2</div>
+        <div class="metric-lbl">Pendentes</div>
+      </div>
+    </div>
+
+    <div class="body">
+      <div class="section-hd">
+        <span class="section-title">Tarefas</span>
+        <div class="tabs">
+          <button class="tab active">Todas</button>
+          <button class="tab">Pendentes</button>
+          <button class="tab">Em andamento</button>
+          <button class="tab">Concluídas</button>
+        </div>
+      </div>
+
+      <div class="tasks">
+        <div class="task">
+          <div class="task-dot dot-done"></div>
+          <span class="task-name done">Configurar BullMQ e Redis</span>
+          <span class="prio p-high">alta</span>
+          <span class="task-due">concluído</span>
+        </div>
+        <div class="task">
+          <div class="task-dot dot-done"></div>
+          <span class="task-name done">Implementar histórico amigável</span>
+          <span class="prio p-high">alta</span>
+          <span class="task-due">concluído</span>
+        </div>
+        <div class="task">
+          <div class="task-dot dot-done"></div>
+          <span class="task-name done">Fix timezone América/SP</span>
+          <span class="prio p-med">média</span>
+          <span class="task-due">concluído</span>
+        </div>
+        <div class="task">
+          <div class="task-dot dot-prog"></div>
+          <span class="task-name">Página de detalhe de projetos</span>
+          <span class="prio p-high">alta</span>
+          <span class="task-due">jun 10</span>
+        </div>
+        <div class="task">
+          <div class="task-dot dot-prog"></div>
+          <span class="task-name">Badge de status nos cards</span>
+          <span class="prio p-med">média</span>
+          <span class="task-due">jun 10</span>
+        </div>
+        <div class="task">
+          <div class="task-dot dot-prog"></div>
+          <span class="task-name">Filtro de tarefas por projeto</span>
+          <span class="prio p-med">média</span>
+          <span class="task-due">jun 15</span>
+        </div>
+        <div class="task">
+          <div class="task-dot dot-pend"></div>
+          <span class="task-name">Testes de regressão notificações</span>
+          <span class="prio p-low">baixa</span>
+          <span class="task-due">jun 20</span>
+        </div>
+        <div class="task">
+          <div class="task-dot dot-pend"></div>
+          <span class="task-name">Deploy produção v2</span>
+          <span class="prio p-high">alta</span>
+          <span class="task-due">jun 30</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="annotation">
+    → Cada projeto herda sua cor escolhida pelo usuário. A faixa superior, barra de progresso e % usam essa cor. O status pill (No prazo / Atrasado / Concluído) usa cor semântica separada — sem conflito. Clique nos botões acima para ver como fica em projetos com cores diferentes.
+  </div>
+
+</div>
+
+<script>
+const colors = { indigo: '#6366f1', pink: '#ec4899', emerald: '#10b981' };
+const pillClass = { green: 'pill-green', red: 'pill-red', blue: 'pill-blue' };
+const pillText = { green: '✓ No prazo', red: '⚠ Atrasado', blue: '● Concluído' };
+
+function switchProject(colorKey, emoji, name, desc, pct, done, total, prog, pend, statusLabel, statusColor) {
+  const color = colors[colorKey];
+  document.getElementById('proj-page').style.setProperty('--proj-color', color);
+
+  document.getElementById('hero-emoji').textContent = emoji;
+  document.getElementById('hero-name').textContent = name;
+  document.getElementById('nav-name').textContent = emoji + ' ' + name;
+  document.getElementById('hero-desc').textContent = desc;
+  document.getElementById('pct-big').textContent = pct + '%';
+  document.getElementById('prog-fill').style.width = pct + '%';
+  document.getElementById('done-count').textContent = done + ' tarefas concluídas';
+  document.getElementById('total-count').textContent = total + ' no total';
+  document.getElementById('m-total').textContent = total;
+  document.getElementById('m-done').textContent = done;
+  document.getElementById('m-prog').textContent = prog;
+  document.getElementById('m-pend').textContent = pend;
+
+  const pill = document.getElementById('status-pill');
+  pill.className = 'status-pill ' + pillClass[statusColor];
+  pill.textContent = pillText[statusColor];
+
+  document.querySelectorAll('.proj-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('btn-' + colorKey).classList.add('active');
+}
+</script>
+</body>
+</html>
