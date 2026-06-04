@@ -18,10 +18,10 @@ RUN pnpm install --frozen-lockfile
 FROM base AS builder
 WORKDIR /app
 COPY --from=installer /app/node_modules ./node_modules
-COPY --from=installer /app/packages/database/node_modules ./packages/database/node_modules
 COPY --from=installer /app/apps/api/node_modules ./apps/api/node_modules
 COPY --from=pruner /app/out/full/ .
 RUN pnpm --filter @orbit/database generate
+RUN pnpm --filter @orbit/database build
 RUN pnpm --filter @orbit/api build
 
 # Stage 4: Runner mínimo
