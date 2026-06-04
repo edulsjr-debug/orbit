@@ -77,6 +77,7 @@ export default function TarefasPage() {
     open: false,
     editing: null,
   })
+  const [expandedId, setExpandedId] = useState<string | null>(null)
   const [historyTaskId, setHistoryTaskId] = useState<string | null>(null)
 
   const { data: history = [] } = useSWR(
@@ -203,8 +204,8 @@ export default function TarefasPage() {
                     borderColor: overdue ? 'rgba(153,27,27,0.14)' : 'rgba(5,11,20,0.08)',
                   }}
                 >
-                  <div style={S.cardMain}>
-                    <div style={S.checkWrap}>
+                  <div style={{ ...S.cardMain, cursor: 'pointer' }} onClick={() => setExpandedId(expandedId === t.id ? null : t.id)}>
+                    <div style={S.checkWrap} onClick={(e) => e.stopPropagation()}>
                       <button
                         style={{
                           ...S.checkBtn,
@@ -275,6 +276,15 @@ export default function TarefasPage() {
                       </div>
                     </div>
                   </div>
+
+                  {expandedId === t.id && (
+                    <div style={S.cardDesc}>
+                      {t.description
+                        ? t.description
+                        : <span style={{ color: '#CBD5E1' }}>Sem descrição.</span>
+                      }
+                    </div>
+                  )}
 
                   <div style={S.cardFooter}>
                     <span style={{ ...S.statusLabel, color: STATUS_COLOR[t.status] }}>
@@ -576,6 +586,12 @@ const S: Record<string, React.CSSProperties> = {
     fontSize: 11, fontWeight: 600, padding: '3px 9px', borderRadius: 999,
   },
   cardDate: { fontSize: 11 },
+  cardDesc: {
+    fontSize: 13, color: '#475569', lineHeight: 1.6,
+    marginTop: 10, paddingTop: 10,
+    borderTop: '1px solid #F3F5F7',
+    whiteSpace: 'pre-wrap' as const,
+  },
   cardFooter: {
     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
     marginTop: 10, paddingTop: 10, borderTop: '1px dashed #EDF1F4',

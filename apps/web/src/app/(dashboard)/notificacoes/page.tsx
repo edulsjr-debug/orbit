@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import useSWR, { mutate } from 'swr'
 import { api } from '@/lib/api'
 import { useIsMobile } from '@/lib/use-mobile'
@@ -38,13 +39,19 @@ function timeAgo(date: string) {
   return `${Math.floor(hours / 24)}d atrás`
 }
 
+const PAGE_SIZE = 5
+
 export default function NotificacoesPage() {
   const isMobile = useIsMobile()
   const { data: notifications = [] } = useSWR<Notification[]>('/notifications', fetcher)
   const { data: countData } = useSWR('/notifications/unread-count', fetcher)
 
+  const [readLimit, setReadLimit] = useState(PAGE_SIZE)
+
   const unread = notifications.filter((n) => !n.read)
   const read = notifications.filter((n) => n.read)
+  const readVisible = read.slice(0, readLimit)
+  const hasMoreRead = read.length > readLimit
 
   async function markRead(id: string) {
     await api.patch(`/notifications/${id}/read`, {})
@@ -141,23 +148,33 @@ export default function NotificacoesPage() {
               {read.length === 0 ? (
                 <div style={S.emptyInline}>Ainda não há notificações concluídas.</div>
               ) : (
-                read.map((n) => (
-                  <div key={n.id} style={S.cardRead}>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={S.cardTitle}>{n.title}</div>
-                      <div style={S.cardBody}>{n.body}</div>
-                      <div style={S.cardMeta}>
-                        <span style={S.metaPill}>{CHANNEL_LABEL[n.channel] ?? n.channel}</span>
-                        {n.entityType && (
-                          <span style={S.entityTagMuted}>
-                            {ENTITY_LABEL[n.entityType] ?? n.entityType}
-                          </span>
-                        )}
-                        <span>{timeAgo(n.createdAt)}</span>
+                <>
+                  {readVisible.map((n) => (
+                    <div key={n.id} style={S.cardRead}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={S.cardTitle}>{n.title}</div>
+                        <div style={S.cardBody}>{n.body}</div>
+                        <div style={S.cardMeta}>
+                          <span style={S.metaPill}>{CHANNEL_LABEL[n.channel] ?? n.channel}</span>
+                          {n.entityType && (
+                            <span style={S.entityTagMuted}>
+                              {ENTITY_LABEL[n.entityType] ?? n.entityType}
+                            </span>
+                          )}
+                          <span>{timeAgo(n.createdAt)}</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))
+                  ))}
+                  {hasMoreRead && (
+                    <button
+                      style={S.loadMoreBtn}
+                      onClick={() => setReadLimit((l) => l + PAGE_SIZE)}
+                    >
+                      Ver mais {read.length - readLimit} notificações
+                    </button>
+                  )}
+                </>
               )}
             </div>
           </section>
@@ -266,6 +283,19 @@ const S: Record<string, React.CSSProperties> = {
     color: '#94A3B8',
     fontSize: 13,
     lineHeight: 1.7,
+  },
+  loadMoreBtn: {
+    display: 'block',
+    width: '100%',
+    padding: '12px',
+    background: 'transparent',
+    border: '1px dashed rgba(5,11,20,0.12)',
+    borderRadius: 14,
+    fontSize: 12,
+    fontWeight: 600,
+    color: '#64748B',
+    cursor: 'pointer',
+    margin: '8px 0 4px',
   },
   cardUnread: {
     display: 'flex',

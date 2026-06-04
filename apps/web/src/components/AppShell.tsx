@@ -187,6 +187,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div style={S.page}>
       {isMobile && sidebarOpen && <div onClick={() => setSidebarOpen(false)} style={S.overlay} />}
+      {(bellOpen || chipOpen) && (
+        <div
+          style={{ position: 'fixed', inset: 0, zIndex: 99 }}
+          onClick={() => { setBellOpen(false); setChipOpen(false) }}
+        />
+      )}
 
       {showSidebar && (
         <aside
@@ -775,7 +781,7 @@ const S: Record<string, React.CSSProperties> = {
     borderRadius: 20,
     boxShadow: '0 24px 48px rgba(5,11,20,0.14)',
     overflow: 'hidden',
-    zIndex: 100,
+    zIndex: 101,
   },
   bellHead: {
     padding: '16px 18px',
