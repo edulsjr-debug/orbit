@@ -701,6 +701,8 @@ const S: Record<string, React.CSSProperties> = {
     padding: '0 clamp(16px, 3vw, 28px)',
     flexShrink: 0,
     backdropFilter: 'blur(10px)',
+    position: 'relative',
+    zIndex: 100,
   },
   topbarLeft: {
     display: 'flex',
