@@ -87,10 +87,13 @@ function localInputToISO(value: string): string {
 
 export default function TarefasPage() {
   const isMobile = useIsMobile()
-  const { data: tasks = [] } = useSWR<Task[]>('/tasks', fetcher)
   const { data: projects = [] } = useSWR<Project[]>('/projects', fetcher)
 
   const [filter, setFilter] = useState<'all' | Status>('all')
+  const [projectFilter, setProjectFilter] = useState<string>('')
+
+  const tasksKey = projectFilter ? `/tasks?projectId=${projectFilter}` : '/tasks'
+  const { data: tasks = [] } = useSWR<Task[]>(tasksKey, fetcher)
   const [modal, setModal] = useState(false)
   const [editing, setEditing] = useState<Task | null>(null)
   const [form, setForm] = useState<TaskForm>(EMPTY_FORM)
@@ -150,7 +153,7 @@ export default function TarefasPage() {
         await api.post('/tasks', body)
       }
 
-      mutate('/tasks')
+      mutate(tasksKey)
       setModal(false)
     } finally {
       setSaving(false)
@@ -160,14 +163,14 @@ export default function TarefasPage() {
   async function remove(id: string) {
     if (!confirm('Remover esta tarefa?')) return
     await api.delete(`/tasks/${id}`)
-    mutate('/tasks')
+    mutate(tasksKey)
   }
 
   async function toggleStatus(t: Task) {
     const next: Status =
       t.status === 'done' ? 'pending' : t.status === 'pending' ? 'in_progress' : 'done'
     await api.patch(`/tasks/${t.id}`, { status: next })
-    mutate('/tasks')
+    mutate(tasksKey)
   }
 
   return (
@@ -209,6 +212,27 @@ export default function TarefasPage() {
             <span style={S.filterBadge}>{counts[f]}</span>
           </button>
         ))}
+
+        {/* Project filter */}
+        {projects.length > 0 && (
+          <select
+            style={{
+              ...S.filter,
+              ...(projectFilter ? S.filterActive : {}),
+              cursor: 'pointer',
+              paddingRight: 28,
+            }}
+            value={projectFilter}
+            onChange={(e) => setProjectFilter(e.target.value)}
+          >
+            <option value="">📁 Todos os projetos</option>
+            {projects.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.emoji} {p.name}
+              </option>
+            ))}
+          </select>
+        )}
       </div>
 
       <section style={{ ...S.mainGrid, ...(isMobile ? S.mainGridMobile : null) }}>
