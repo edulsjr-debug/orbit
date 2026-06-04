@@ -18,7 +18,7 @@ COPY --from=installer /app/node_modules ./node_modules
 COPY --from=installer /app/apps/web/node_modules ./apps/web/node_modules
 COPY --from=pruner /app/out/full/ .
 ENV API_URL=http://orbit-api:3001
-RUN pnpm --filter @orbit/web build
+RUN node_modules/.bin/next build apps/web
 
 # Stage 4: Runner mínimo
 FROM node:20-alpine AS runner

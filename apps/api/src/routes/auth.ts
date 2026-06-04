@@ -2,6 +2,7 @@ import { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { prisma } from '@orbit/database'
 import { createHash } from 'crypto'
+import { sendWelcomeEmail } from '../services/notifications.js'
 
 const hashPassword = (pw: string) =>
   createHash('sha256').update(pw + (process.env.SALT ?? 'orbit-salt')).digest('hex')
@@ -31,6 +32,12 @@ export async function authRoutes(app: FastifyInstance) {
 
     const token = app.jwt.sign({ sub: user.id, email: user.email })
     reply.setCookie('orbit_token', token, { httpOnly: true, path: '/', maxAge: 60 * 60 * 24 * 30 })
+
+    // fire-and-forget — não bloqueia o cadastro
+    sendWelcomeEmail(user.email, user.name).catch((err: unknown) =>
+      app.log.error({ err }, 'Falha ao enviar email de boas-vindas')
+    )
+
     return { data: user }
   })
 

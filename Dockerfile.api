@@ -20,7 +20,7 @@ WORKDIR /app
 COPY --from=installer /app/node_modules ./node_modules
 COPY --from=installer /app/apps/api/node_modules ./apps/api/node_modules
 COPY --from=pruner /app/out/full/ .
-RUN node_modules/.bin/prisma generate --schema packages/database/prisma/schema.prisma
+RUN pnpm --filter @orbit/database generate
 RUN pnpm --filter @orbit/database build
 RUN pnpm --filter @orbit/api build
 

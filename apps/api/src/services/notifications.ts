@@ -90,7 +90,7 @@ export async function sendEmail(to: string, subject: string, html: string) {
   try {
     const resend = getResendClient()
     await resend.emails.send({
-      from: 'Orbit <notificacoes@orbit.app>',
+      from: process.env.EMAIL_FROM ?? 'Orbit <noreply@prumosaas.com.br>',
       to,
       subject,
       html,
@@ -102,6 +102,44 @@ export async function sendEmail(to: string, subject: string, html: string) {
 
 export async function sendEmailNotification(email: string, subject: string, html: string) {
   await sendEmail(email, subject, html)
+}
+
+export async function sendWelcomeEmail(to: string, name: string): Promise<void> {
+  const safeName = name
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+  await sendEmail(
+    to,
+    'Bem-vindo ao Orbit',
+    `<!DOCTYPE html>
+<html lang="pt-BR">
+<head><meta charset="UTF-8"><style>
+body{font-family:Inter,sans-serif;background:#fff;color:#0D0D0D;margin:0;padding:0}
+.c{max-width:520px;margin:0 auto;padding:48px 32px}
+.logo{font-size:11px;font-weight:600;letter-spacing:.2em;color:#B8924F;margin-bottom:40px}
+h1{font-size:22px;font-weight:400;letter-spacing:-.02em;margin-bottom:16px}
+p{font-size:14px;line-height:1.7;color:#555;margin-bottom:12px}
+.btn{display:inline-block;margin-top:24px;padding:12px 24px;background:#0D0D0D;color:#F5F2EC;text-decoration:none;font-size:12px;letter-spacing:.08em;font-weight:500}
+.ft{margin-top:48px;padding-top:24px;border-top:1px solid #eee;font-size:11px;color:#999}
+a.gold{color:#B8924F;text-decoration:none}
+</style></head>
+<body>
+  <div class="c">
+    <div class="logo">| ORBIT</div>
+    <h1>Bem-vindo, ${safeName}.</h1>
+    <p>Sua conta no Orbit está pronta.</p>
+    <p>Comece criando seus primeiros compromissos e veja como fica mais fácil organizar a semana da sua equipe.</p>
+    <a href="https://orbit.prumosaas.com.br" class="btn">→ Acessar o Orbit</a>
+    <div class="ft">
+      orbit.prumosaas.com.br &nbsp;·&nbsp;
+      <a href="https://prumosaas.com.br" class="gold">Prumo Software</a>
+    </div>
+  </div>
+</body>
+</html>`
+  )
 }
 
 export async function createInAppNotification(
