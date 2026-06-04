@@ -1,9 +1,11 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import useSWR, { mutate } from 'swr'
 import { api } from '@/lib/api'
 import { useIsMobile } from '@/lib/use-mobile'
+import { projectStatus, STATUS_LABEL, STATUS_PILL_STYLE } from '@/lib/project-status'
 
 type Project = {
   id: string
@@ -12,17 +14,10 @@ type Project = {
   color: string
   emoji: string
   deadline?: string
+  taskCount: number
+  taskDone: number
   userId: string
   createdAt: string
-}
-
-type Task = {
-  id: string
-  title: string
-  status: string
-  priority: string
-  dueAt?: string
-  projectId?: string
 }
 
 type ProjectForm = {
@@ -51,11 +46,6 @@ const EMPTY_FORM: ProjectForm = {
   emoji: '📁',
   deadline: '',
 }
-const PRIORITY_COLOR: Record<string, string> = {
-  low: '#0F766E',
-  medium: '#B8924F',
-  high: '#991B1B',
-}
 
 const fetcher = (url: string) => api.get<any>(url).then((r: any) => r.data)
 
@@ -72,20 +62,19 @@ function localDateToISO(value: string): string {
 
 export default function ProjetosPage() {
   const isMobile = useIsMobile()
+  const router = useRouter()
   const { data: projects = [] } = useSWR<Project[]>('/projects', fetcher)
-  const { data: tasks = [] } = useSWR<Task[]>('/tasks', fetcher)
 
   const [modal, setModal] = useState(false)
   const [editing, setEditing] = useState<Project | null>(null)
   const [form, setForm] = useState<ProjectForm>(EMPTY_FORM)
   const [saving, setSaving] = useState(false)
-  const [selected, setSelected] = useState<Project | null>(null)
 
-  const projectsWithStats = projects.map((p) => {
-    const ptasks = tasks.filter((t) => t.projectId === p.id)
-    const done = ptasks.filter((t) => t.status === 'done').length
-    return { ...p, taskCount: ptasks.length, taskDone: done, ptasks }
-  })
+  const projectsWithStats = projects.map((p) => ({
+    ...p,
+    taskCount: p.taskCount ?? 0,
+    taskDone: p.taskDone ?? 0,
+  }))
 
   function openNew() {
     setEditing(null)
@@ -131,7 +120,6 @@ export default function ProjetosPage() {
     await api.delete(`/projects/${id}`)
     mutate('/projects')
     mutate('/tasks')
-    if (selected?.id === id) setSelected(null)
   }
 
   return (
@@ -142,8 +130,7 @@ export default function ProjetosPage() {
           <h1 style={S.title}>Frentes com progresso visível.</h1>
           <p style={S.sub}>
             {projects.length} projeto{projects.length !== 1 ? 's' : ''} ativo
-            {projects.length !== 1 ? 's' : ''} e {tasks.length} tarefa
-            {tasks.length !== 1 ? 's' : ''} distribuída{tasks.length !== 1 ? 's' : ''}.
+            {projects.length !== 1 ? 's' : ''}.
           </p>
         </div>
         <button style={S.btnPrimary} onClick={openNew}>
@@ -163,142 +150,69 @@ export default function ProjetosPage() {
           </button>
         </div>
       ) : (
-        <div style={{ ...S.mainGrid, ...(isMobile ? S.mainGridMobile : null) }}>
-          <section style={S.projectsPanel}>
-            <div style={S.panelHead}>
-              <div>
-                <div style={S.panelTitle}>Carteira de projetos</div>
-                <div style={S.panelSub}>Selecione um projeto para ver as tarefas vinculadas</div>
-              </div>
+        <section style={S.projectsPanel}>
+          <div style={S.panelHead}>
+            <div>
+              <div style={S.panelTitle}>Carteira de projetos</div>
+              <div style={S.panelSub}>Clique em um projeto para ver o detalhe</div>
             </div>
+          </div>
+          <div style={S.grid}>
+            {projectsWithStats.map((p) => {
+              const progress = p.taskCount > 0 ? (p.taskDone / p.taskCount) * 100 : 0
+              const st = projectStatus(p)
 
-            <div style={S.grid}>
-              {projectsWithStats.map((p) => {
-                const progress = p.taskCount > 0 ? (p.taskDone / p.taskCount) * 100 : 0
-                const active = selected?.id === p.id
+              return (
+                <div
+                  key={p.id}
+                  style={{ ...S.card }}
+                  onClick={() => router.push(`/dashboard/projetos/${p.id}`)}
+                >
+                  <div style={{ ...S.cardBar, background: p.color }} />
 
-                return (
-                  <div
-                    key={p.id}
-                    style={{
-                      ...S.card,
-                      borderColor: active ? `${p.color}55` : 'rgba(5,11,20,0.08)',
-                      boxShadow: active ? `0 0 0 2px ${p.color}20` : 'none',
-                    }}
-                    onClick={() => setSelected(active ? null : p)}
-                  >
-                    <div style={{ ...S.cardBar, background: p.color }} />
-
-                    <div style={S.cardHead}>
-                      <div style={{ ...S.emojiBox, background: `${p.color}18`, color: p.color }}>
-                        {p.emoji}
-                      </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={S.cardName}>{p.name}</div>
-                        {p.deadline && (
-                          <div style={S.cardDeadline}>
-                            Prazo: {new Date(p.deadline).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' })}
-                          </div>
-                        )}
-                      </div>
-                      <div style={S.cardActions} onClick={(e) => e.stopPropagation()}>
-                        <button style={S.iconBtn} onClick={() => openEdit(p)}>
-                          Editar
-                        </button>
-                        <button style={S.iconBtnDanger} onClick={() => remove(p.id)}>
-                          Remover
-                        </button>
-                      </div>
+                  <div style={S.cardHead}>
+                    <div style={{ ...S.emojiBox, background: `${p.color}18`, color: p.color }}>
+                      {p.emoji}
                     </div>
-
-                    {p.description && <p style={S.cardDesc}>{p.description}</p>}
-
-                    <div style={S.progressRow}>
-                      <div style={S.progressTrack}>
-                        <div
-                          style={{
-                            ...S.progressFill,
-                            background: p.color,
-                            width: `${progress}%`,
-                          }}
-                        />
-                      </div>
-                      <span style={S.progressLabel}>{Math.round(progress)}%</span>
-                    </div>
-
-                    <div style={S.cardMeta}>
-                      <span>{p.taskDone}/{p.taskCount} tarefas concluídas</span>
-                      <span>{p.taskCount} no total</span>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          </section>
-
-          <aside style={S.sidePanel}>
-            <div style={S.panelHead}>
-              <div>
-                <div style={S.panelTitle}>Tarefas do projeto</div>
-                <div style={S.panelSub}>
-                  {selected ? `${selected.emoji} ${selected.name}` : 'Selecione um projeto'}
-                </div>
-              </div>
-            </div>
-
-            {!selected && (
-              <div style={S.sideEmpty}>
-                Abra um projeto para ver as tarefas associadas e o ritmo da execução.
-              </div>
-            )}
-
-            {selected &&
-              (() => {
-                const pw = projectsWithStats.find((p) => p.id === selected.id)
-                if (!pw) return null
-
-                return pw.ptasks.length === 0 ? (
-                  <div style={S.sideEmpty}>Nenhuma tarefa vinculada a este projeto.</div>
-                ) : (
-                  <div style={S.taskList}>
-                    {pw.ptasks.map((t) => (
-                      <div key={t.id} style={S.taskRow}>
-                        <span style={S.taskStatus}>
-                          {t.status === 'done' ? '✓' : t.status === 'in_progress' ? '◔' : '○'}
-                        </span>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div
-                            style={{
-                              ...S.taskTitle,
-                              ...(t.status === 'done'
-                                ? { textDecoration: 'line-through', color: '#94A3B8' }
-                                : {}),
-                            }}
-                          >
-                            {t.title}
-                          </div>
-                          <div style={S.taskMeta}>
-                            <span
-                              style={{
-                                ...S.priorityPill,
-                                background: `${PRIORITY_COLOR[t.priority] ?? '#64748B'}16`,
-                                color: PRIORITY_COLOR[t.priority] ?? '#64748B',
-                              }}
-                            >
-                              {t.priority.toUpperCase()}
-                            </span>
-                            {t.dueAt && (
-                              <span>{new Date(t.dueAt).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' })}</span>
-                            )}
-                          </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={S.cardName}>{p.name}</div>
+                      {p.deadline && (
+                        <div style={S.cardDeadline}>
+                          Prazo: {new Date(p.deadline).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' })}
                         </div>
-                      </div>
-                    ))}
+                      )}
+                    </div>
+                    <div style={S.cardActions} onClick={(e) => e.stopPropagation()}>
+                      <button style={S.iconBtn} onClick={() => openEdit(p)}>Editar</button>
+                      <button style={S.iconBtnDanger} onClick={() => remove(p.id)}>Remover</button>
+                    </div>
                   </div>
-                )
-              })()}
-          </aside>
-        </div>
+
+                  {p.description && <p style={S.cardDesc}>{p.description}</p>}
+
+                  {/* Pill de status */}
+                  <div style={{ marginBottom: 10 }}>
+                    <span style={{ ...S.pill, ...STATUS_PILL_STYLE[st] }}>
+                      {STATUS_LABEL[st]}
+                    </span>
+                  </div>
+
+                  <div style={S.progressRow}>
+                    <div style={S.progressTrack}>
+                      <div style={{ ...S.progressFill, background: p.color, width: `${progress}%` }} />
+                    </div>
+                    <span style={S.progressLabel}>{Math.round(progress)}%</span>
+                  </div>
+
+                  <div style={S.cardMeta}>
+                    <span>{p.taskDone}/{p.taskCount} tarefas concluídas</span>
+                    <span>{p.taskCount} no total</span>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </section>
       )}
 
       {modal && (
@@ -471,26 +385,11 @@ const S: Record<string, React.CSSProperties> = {
     marginBottom: 22,
     lineHeight: 1.7,
   },
-  mainGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'minmax(0, 1.4fr) minmax(300px, 0.8fr)',
-    gap: 16,
-  },
-  mainGridMobile: {
-    gridTemplateColumns: '1fr',
-  },
   projectsPanel: {
     background: '#FFFFFF',
     borderRadius: 24,
     border: '1px solid rgba(5,11,20,0.08)',
     overflow: 'hidden',
-  },
-  sidePanel: {
-    background: '#FFFFFF',
-    borderRadius: 24,
-    border: '1px solid rgba(5,11,20,0.08)',
-    overflow: 'hidden',
-    minHeight: 360,
   },
   panelHead: {
     padding: '18px 20px',
@@ -600,53 +499,12 @@ const S: Record<string, React.CSSProperties> = {
     color: '#94A3B8',
     flexWrap: 'wrap',
   },
-  sideEmpty: {
-    padding: '24px 20px',
-    color: '#94A3B8',
-    fontSize: 13,
-    lineHeight: 1.7,
-  },
-  taskList: {
-    display: 'grid',
-    gap: 10,
-    padding: 14,
-  },
-  taskRow: {
-    display: 'flex',
-    alignItems: 'flex-start',
-    gap: 10,
-    padding: '12px 12px',
-    borderRadius: 16,
-    background: '#FBFCFD',
-    border: '1px solid #EDF1F4',
-  },
-  taskStatus: {
-    fontSize: 16,
-    color: '#64748B',
-    width: 20,
-    textAlign: 'center',
-    marginTop: 1,
-    flexShrink: 0,
-  },
-  taskTitle: {
-    fontSize: 13,
-    fontWeight: 700,
-    color: '#0F172A',
-  },
-  taskMeta: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 8,
-    marginTop: 6,
-    flexWrap: 'wrap',
+  pill: {
+    display: 'inline-block',
     fontSize: 11,
-    color: '#94A3B8',
-  },
-  priorityPill: {
-    padding: '4px 8px',
-    borderRadius: 999,
-    fontSize: 10,
     fontWeight: 700,
+    padding: '3px 10px',
+    borderRadius: 999,
   },
   iconBtn: {
     background: 'transparent',
