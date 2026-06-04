@@ -1,30 +1,26 @@
 FROM node:20-alpine AS base
 RUN npm install -g pnpm@9 turbo@2
 
-# Stage 1: Prune — cria subset do monorepo com apenas @orbit/api e suas deps
 FROM base AS pruner
 WORKDIR /app
 COPY . .
 RUN turbo prune @orbit/api --docker
 
-# Stage 2: Instalar dependências do subset
 FROM base AS installer
 WORKDIR /app
 COPY --from=pruner /app/out/json/ .
 COPY --from=pruner /app/out/pnpm-lock.yaml ./pnpm-lock.yaml
 RUN pnpm install --frozen-lockfile
 
-# Stage 3: Build
 FROM base AS builder
 WORKDIR /app
 COPY --from=installer /app/node_modules ./node_modules
 COPY --from=installer /app/apps/api/node_modules ./apps/api/node_modules
 COPY --from=pruner /app/out/full/ .
-RUN pnpm --filter @orbit/database generate
-RUN pnpm --filter @orbit/database build
-RUN pnpm --filter @orbit/api build
+RUN node_modules/.bin/prisma generate --schema packages/database/prisma/schema.prisma
+RUN node_modules/.bin/tsc -p packages/database/tsconfig.json
+RUN node_modules/.bin/tsc -p apps/api/tsconfig.json
 
-# Stage 4: Runner mínimo
 FROM node:20-alpine AS runner
 RUN apk add --no-cache openssl tzdata
 WORKDIR /app
