@@ -6,7 +6,6 @@ import { api } from '@/lib/api'
 import { useIsMobile } from '@/lib/use-mobile'
 
 type ViewMode = 'mes' | 'lista' | 'kanban'
-type DensityMode = 'detailed' | 'compact'
 type HistoryTab = 'details' | 'history'
 
 type EventItem = {
@@ -192,7 +191,6 @@ export default function CompromissosPage() {
   const isMobile = useIsMobile()
   const today = useMemo(() => startOfDay(new Date()), [])
   const [view, setView] = useState<ViewMode>('mes')
-  const [density, setDensity] = useState<DensityMode>('detailed')
   const [selectedDate, setSelectedDate] = useState<Date>(today)
   const [monthCursor, setMonthCursor] = useState<Date>(startOfMonth(today))
   const [modalOpen, setModalOpen] = useState(false)
@@ -484,13 +482,6 @@ export default function CompromissosPage() {
               </button>
             ))}
           </div>
-          <div style={S.switcherWrap}>
-            {(['detailed', 'compact'] as DensityMode[]).map((mode) => (
-              <button key={mode} type="button" onClick={() => setDensity(mode)} style={{ ...S.switcherBtn, ...(density === mode ? S.switcherBtnActive : {}) }}>
-                {mode === 'detailed' ? 'Detalhado' : 'Compacto'}
-              </button>
-            ))}
-          </div>
           <button type="button" style={S.primaryButton} onClick={() => openCreateModal(selectedDate)}>
             + Novo compromisso
           </button>
@@ -518,16 +509,10 @@ export default function CompromissosPage() {
               <div style={S.emptyState}>Carregando compromissos...</div>
             ) : selectedEvents.length === 0 ? (
               <div style={S.emptyState}>Nenhum compromisso neste dia.</div>
-            ) : density === 'detailed' ? (
-              <div style={{ ...S.verticalList, ...S.agendaListMonth }}>
-                {selectedEvents.map((event) => (
-                  <AgendaTimelineCard key={event.id} event={event} onClick={() => openEditModal(event)} />
-                ))}
-              </div>
             ) : (
               <div style={{ ...S.verticalList, ...S.agendaListMonth }}>
                 {selectedEvents.map((event) => (
-                  <CompactEventRow key={event.id} event={event} onClick={() => openEditModal(event)} />
+                  <AgendaTimelineCard key={event.id} event={event} onClick={() => openEditModal(event)} />
                 ))}
               </div>
             )}
@@ -640,10 +625,8 @@ export default function CompromissosPage() {
               </div>
               {group.events.length === 0 ? (
                 <div style={S.emptyListCard}>Nenhum compromisso.</div>
-              ) : density === 'detailed' ? (
-                group.events.map((event) => <EventCard key={event.id} event={event} onClick={() => openEditModal(event)} />)
               ) : (
-                group.events.map((event) => <CompactEventRow key={event.id} event={event} onClick={() => openEditModal(event)} />)
+                group.events.map((event) => <EventCard key={event.id} event={event} onClick={() => openEditModal(event)} />)
               )}
             </div>
           ))}
