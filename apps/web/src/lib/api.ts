@@ -12,7 +12,9 @@ async function request<T>(
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: res.statusText }))
-    throw new Error(err.error ?? 'Erro desconhecido')
+    const error = new Error(err.error ?? 'Erro desconhecido') as Error & { code?: string }
+    if (err.code) error.code = err.code
+    throw error
   }
 
   if (res.status === 204) return undefined as T
