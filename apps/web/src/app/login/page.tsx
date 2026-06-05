@@ -35,6 +35,8 @@ export default function LoginPage() {
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setError('')
+    setLoginFailed(false)
+    setResetSent(false)
     setLoading(true)
 
     const fd = new FormData(e.currentTarget)
@@ -62,9 +64,11 @@ export default function LoginPage() {
   }
 
   async function handleForgotPassword() {
+    // lê o email atual do campo (não o capturado no erro — pode ter sido corrigido)
+    const currentEmail = (document.querySelector('input[name="email"]') as HTMLInputElement)?.value ?? failedEmail
     setResetLoading(true)
     try {
-      await api.post('/auth/forgot-password', { email: failedEmail })
+      await api.post('/auth/forgot-password', { email: currentEmail })
     } catch {
       // always show generic message — don't reveal failures
     } finally {
@@ -215,7 +219,7 @@ export default function LoginPage() {
                   type="button"
                   onClick={handleForgotPassword}
                   disabled={resetLoading}
-                  style={styles.forgotButton}
+                  style={{ ...styles.forgotButton, ...(resetLoading ? { opacity: 0.5, cursor: 'not-allowed' } : {}) }}
                 >
                   {resetLoading ? 'Enviando...' : 'Esqueci minha senha'}
                 </button>
