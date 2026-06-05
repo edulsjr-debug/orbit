@@ -37,7 +37,7 @@ async function buildApp() {
   return app
 }
 
-describe('POST /auth/google', () => {
+describe('POST /google', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     process.env.GOOGLE_CLIENT_ID = 'test-client-id'
@@ -59,7 +59,7 @@ describe('POST /auth/google', () => {
     const app = await buildApp()
     const res = await app.inject({
       method: 'POST',
-      url: '/auth/google',
+      url: '/google',
       payload: { credential: 'fake-token' },
     })
 
@@ -98,7 +98,7 @@ describe('POST /auth/google', () => {
     const app = await buildApp()
     const res = await app.inject({
       method: 'POST',
-      url: '/auth/google',
+      url: '/google',
       payload: { credential: 'fake-token' },
     })
 
@@ -117,7 +117,7 @@ describe('POST /auth/google', () => {
     const app = await buildApp()
     const res = await app.inject({
       method: 'POST',
-      url: '/auth/google',
+      url: '/google',
       payload: { credential: 'token-ruim' },
     })
 

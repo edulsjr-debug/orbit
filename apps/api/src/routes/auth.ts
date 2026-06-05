@@ -146,10 +146,11 @@ export async function authRoutes(app: FastifyInstance) {
   app.patch('/me', updateMe, updateMeHandler)
 
   // Login com Google
-  app.post('/auth/google', async (req, reply) => {
-    const { credential } = z.object({ credential: z.string() }).parse(req.body)
+  app.post('/google', async (req, reply) => {
+    const { credential } = z.object({ credential: z.string().max(4096) }).parse(req.body)
 
-    const clientId = process.env.GOOGLE_CLIENT_ID ?? ''
+    const clientId = process.env.GOOGLE_CLIENT_ID
+    if (!clientId) return reply.code(500).send({ error: 'Google login não configurado' })
     const client = new OAuth2Client(clientId)
 
     let payload
