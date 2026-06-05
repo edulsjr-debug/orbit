@@ -9,8 +9,13 @@ const hashPassword = (pw: string) =>
 
 export function generateRandomPassword(length = 8): string {
   const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
-  const bytes = randomBytes(length)
-  return Array.from(bytes).map(b => charset[b % charset.length]).join('')
+  const limit = 256 - (256 % charset.length) // 248 — elimina modulo bias
+  const result: string[] = []
+  while (result.length < length) {
+    const byte = randomBytes(1)[0]
+    if (byte < limit) result.push(charset[byte % charset.length])
+  }
+  return result.join('')
 }
 
 export async function authRoutes(app: FastifyInstance) {
@@ -83,7 +88,7 @@ export async function authRoutes(app: FastifyInstance) {
 
     const newPassword = generateRandomPassword()
     await prisma.user.update({
-      where: { email: body.email },
+      where: { id: user.id },
       data: { password: hashPassword(newPassword) },
     })
 
