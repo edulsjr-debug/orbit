@@ -27,6 +27,10 @@ export default function LoginPage() {
   const [mode, setMode] = useState<'login' | 'register'>('login')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [loginFailed, setLoginFailed] = useState(false)
+  const [resetSent, setResetSent] = useState(false)
+  const [resetLoading, setResetLoading] = useState(false)
+  const [failedEmail, setFailedEmail] = useState('')
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -48,8 +52,25 @@ export default function LoginPage() {
       router.refresh()
     } catch (err: any) {
       setError(err.message)
+      if (mode === 'login') {
+        setLoginFailed(true)
+        setFailedEmail(fd.get('email') as string)
+      }
     } finally {
       setLoading(false)
+    }
+  }
+
+  async function handleForgotPassword() {
+    setResetLoading(true)
+    try {
+      await api.post('/auth/forgot-password', { email: failedEmail })
+    } catch {
+      // always show generic message — don't reveal failures
+    } finally {
+      setResetSent(true)
+      setLoginFailed(false)
+      setResetLoading(false)
     }
   }
 
@@ -131,7 +152,7 @@ export default function LoginPage() {
             <div style={styles.modeSwitch}>
               <button
                 type="button"
-                onClick={() => setMode('login')}
+                onClick={() => { setMode('login'); setLoginFailed(false); setResetSent(false) }}
                 style={{
                   ...styles.modeButton,
                   ...(mode === 'login' ? styles.modeButtonActive : {}),
@@ -141,7 +162,7 @@ export default function LoginPage() {
               </button>
               <button
                 type="button"
-                onClick={() => setMode('register')}
+                onClick={() => { setMode('register'); setLoginFailed(false); setResetSent(false) }}
                 style={{
                   ...styles.modeButton,
                   ...(mode === 'register' ? styles.modeButtonActive : {}),
@@ -188,6 +209,23 @@ export default function LoginPage() {
               </div>
 
               {error && <div style={styles.error}>{error}</div>}
+
+              {loginFailed && !resetSent && (
+                <button
+                  type="button"
+                  onClick={handleForgotPassword}
+                  disabled={resetLoading}
+                  style={styles.forgotButton}
+                >
+                  {resetLoading ? 'Enviando...' : 'Esqueci minha senha'}
+                </button>
+              )}
+
+              {resetSent && (
+                <div style={styles.resetMessage}>
+                  Se esse email está cadastrado, você receberá a nova senha em breve.
+                </div>
+              )}
 
               <button type="submit" disabled={loading} style={styles.submitButton}>
                 {loading ? 'Aguarde...' : mode === 'login' ? 'Entrar' : 'Criar conta'}
@@ -503,5 +541,25 @@ const styles: Record<string, React.CSSProperties> = {
     height: 1,
     background: 'rgba(5,11,20,0.18)',
     flexShrink: 0,
+  },
+  forgotButton: {
+    border: 'none',
+    background: 'transparent',
+    padding: '0 4px',
+    fontSize: 13,
+    color: '#475569',
+    cursor: 'pointer',
+    textDecoration: 'underline',
+    textAlign: 'left' as const,
+    fontWeight: 500,
+  },
+  resetMessage: {
+    borderRadius: 16,
+    padding: '14px 16px',
+    background: 'rgba(5, 100, 5, 0.06)',
+    border: '1px solid rgba(5, 100, 5, 0.14)',
+    color: '#166534',
+    fontSize: 13,
+    lineHeight: 1.6,
   },
 }
