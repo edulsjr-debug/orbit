@@ -1,11 +1,17 @@
 import { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { prisma } from '@orbit/database'
-import { createHash } from 'crypto'
-import { sendWelcomeEmail } from '../services/notifications.js'
+import { createHash, randomBytes } from 'crypto'
+import { sendWelcomeEmail, sendPasswordResetEmail } from '../services/notifications.js'
 
 const hashPassword = (pw: string) =>
   createHash('sha256').update(pw + (process.env.SALT ?? 'orbit-salt')).digest('hex')
+
+export function generateRandomPassword(length = 8): string {
+  const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+  const bytes = randomBytes(length)
+  return Array.from(bytes).map(b => charset[b % charset.length]).join('')
+}
 
 export async function authRoutes(app: FastifyInstance) {
   // Registro
@@ -62,6 +68,30 @@ export async function authRoutes(app: FastifyInstance) {
 
     const { password: _, ...safe } = user
     return { data: safe }
+  })
+
+  // Recuperar senha
+  app.post('/forgot-password', async (req, reply) => {
+    const body = z.object({ email: z.string().email() }).parse(req.body)
+
+    const user = await prisma.user.findUnique({
+      where: { email: body.email },
+      select: { id: true, email: true },
+    })
+
+    if (!user) return { ok: true }
+
+    const newPassword = generateRandomPassword()
+    await prisma.user.update({
+      where: { email: body.email },
+      data: { password: hashPassword(newPassword) },
+    })
+
+    sendPasswordResetEmail(body.email, newPassword).catch((err: unknown) =>
+      app.log.error({ err }, 'Falha ao enviar email de recuperação de senha')
+    )
+
+    return { ok: true }
   })
 
   // Perfil
