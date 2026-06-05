@@ -83,12 +83,7 @@ export default function LoginPage() {
       router.push('/inicio')
       router.refresh()
     } catch (err: any) {
-      const errCode = (err as any).code
-      if (errCode === 'USE_GOOGLE_LOGIN') {
-        setError('Esta conta usa login com Google. Use o botão "Continuar com o Google" acima.')
-      } else {
-        setError(err.message)
-      }
+      setError(err.message)
     } finally {
       setLoading(false)
     }
@@ -207,7 +202,7 @@ export default function LoginPage() {
               </button>
             </div>
 
-            <div style={styles.googleSection}>
+            <div style={{ ...styles.googleSection, pointerEvents: loading ? 'none' : 'auto', opacity: loading ? 0.5 : 1 }}>
               <GoogleLogin
                 onSuccess={handleGoogleSuccess}
                 onError={() => setError('Falha ao autenticar com o Google. Tente novamente.')}
