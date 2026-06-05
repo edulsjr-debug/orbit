@@ -81,6 +81,16 @@ describe('sendPasswordResetEmail', () => {
     expect(callArg.html).toContain('Ab3Xy9Qz')
   })
 
+  it('usa EMAIL_FROM como remetente', async () => {
+    const { sendPasswordResetEmail } = await import('../notifications.js')
+    await sendPasswordResetEmail('user@example.com', 'Ab3Xy9Qz')
+    expect(mockEmailsSend).toHaveBeenCalledWith(
+      expect.objectContaining({
+        from: 'Orbit <noreply@prumosaas.com.br>',
+      })
+    )
+  })
+
   it('não chama Resend quando RESEND_API_KEY está ausente', async () => {
     delete process.env.RESEND_API_KEY
     const { sendPasswordResetEmail } = await import('../notifications.js')

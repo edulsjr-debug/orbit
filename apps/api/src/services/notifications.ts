@@ -143,6 +143,11 @@ a.gold{color:#B8924F;text-decoration:none}
 }
 
 export async function sendPasswordResetEmail(to: string, newPassword: string): Promise<void> {
+  const safePassword = newPassword
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
   await sendEmail(
     to,
     'Sua nova senha do Orbit',
@@ -165,7 +170,7 @@ a.gold{color:#B8924F;text-decoration:none}
     <div class="logo">| ORBIT</div>
     <h1>Sua senha foi redefinida.</h1>
     <p>Use a senha abaixo para acessar sua conta:</p>
-    <div class="pw-box">${newPassword}</div>
+    <div class="pw-box">${safePassword}</div>
     <p class="note">Recomendamos trocar a senha após o primeiro acesso, em Configurações.</p>
     <a href="https://orbit.prumosaas.com.br/login" class="btn">→ Acessar o Orbit</a>
     <div class="ft">
