@@ -65,7 +65,13 @@ export async function authRoutes(app: FastifyInstance) {
       select: { id: true, name: true, email: true, phone: true, password: true, createdAt: true },
     })
 
-    if (!user || user.password !== hashPassword(body.password)) {
+    if (!user) {
+      return reply.code(401).send({ error: 'E-mail ou senha incorretos' })
+    }
+    if (!user.password) {
+      return reply.code(401).send({ error: 'Esta conta usa login com Google. Clique em "Continuar com o Google".' })
+    }
+    if (user.password !== hashPassword(body.password)) {
       return reply.code(401).send({ error: 'E-mail ou senha incorretos' })
     }
 
@@ -82,10 +88,11 @@ export async function authRoutes(app: FastifyInstance) {
 
     const user = await prisma.user.findUnique({
       where: { email: body.email },
-      select: { id: true, email: true },
+      select: { id: true, email: true, password: true },
     })
 
     if (!user) return { ok: true }
+    if (!user.password) return { ok: true }  // Conta Google-only
 
     const newPassword = generateRandomPassword()
     await prisma.user.update({
