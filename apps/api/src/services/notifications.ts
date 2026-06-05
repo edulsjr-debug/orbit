@@ -142,6 +142,42 @@ a.gold{color:#B8924F;text-decoration:none}
   )
 }
 
+export async function sendPasswordResetEmail(to: string, newPassword: string): Promise<void> {
+  await sendEmail(
+    to,
+    'Sua nova senha do Orbit',
+    `<!DOCTYPE html>
+<html lang="pt-BR">
+<head><meta charset="UTF-8"><style>
+body{font-family:Inter,sans-serif;background:#fff;color:#0D0D0D;margin:0;padding:0}
+.c{max-width:520px;margin:0 auto;padding:48px 32px}
+.logo{font-size:11px;font-weight:600;letter-spacing:.2em;color:#B8924F;margin-bottom:40px}
+h1{font-size:22px;font-weight:400;letter-spacing:-.02em;margin-bottom:16px}
+p{font-size:14px;line-height:1.7;color:#555;margin-bottom:12px}
+.pw-box{margin:24px 0;padding:20px 24px;background:#f1f5f9;border-radius:12px;font-family:monospace;font-size:22px;font-weight:700;letter-spacing:.12em;color:#050B14;text-align:center}
+.note{font-size:12px;color:#94a3b8;margin-top:4px}
+.btn{display:inline-block;margin-top:20px;padding:12px 24px;background:#0D0D0D;color:#F5F2EC;text-decoration:none;font-size:12px;letter-spacing:.08em;font-weight:500}
+.ft{margin-top:48px;padding-top:24px;border-top:1px solid #eee;font-size:11px;color:#999}
+a.gold{color:#B8924F;text-decoration:none}
+</style></head>
+<body>
+  <div class="c">
+    <div class="logo">| ORBIT</div>
+    <h1>Sua senha foi redefinida.</h1>
+    <p>Use a senha abaixo para acessar sua conta:</p>
+    <div class="pw-box">${newPassword}</div>
+    <p class="note">Recomendamos trocar a senha após o primeiro acesso, em Configurações.</p>
+    <a href="https://orbit.prumosaas.com.br/login" class="btn">→ Acessar o Orbit</a>
+    <div class="ft">
+      orbit.prumosaas.com.br &nbsp;·&nbsp;
+      <a href="https://prumosaas.com.br" class="gold">Prumo Software</a>
+    </div>
+  </div>
+</body>
+</html>`
+  )
+}
+
 export async function createInAppNotification(
   userId: string,
   title: string,
