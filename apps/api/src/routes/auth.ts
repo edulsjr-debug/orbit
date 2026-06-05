@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { prisma } from '@orbit/database'
 import { createHash, randomBytes } from 'crypto'
 import { sendWelcomeEmail, sendPasswordResetEmail } from '../services/notifications.js'
+import { OAuth2Client } from 'google-auth-library'
 
 const hashPassword = (pw: string) =>
   createHash('sha256').update(pw + (process.env.SALT ?? 'orbit-salt')).digest('hex')
@@ -143,4 +144,57 @@ export async function authRoutes(app: FastifyInstance) {
 
   app.put('/me', updateMe, updateMeHandler)
   app.patch('/me', updateMe, updateMeHandler)
+
+  // Login com Google
+  app.post('/auth/google', async (req, reply) => {
+    const { credential } = z.object({ credential: z.string() }).parse(req.body)
+
+    const clientId = process.env.GOOGLE_CLIENT_ID ?? ''
+    const client = new OAuth2Client(clientId)
+
+    let payload
+    try {
+      const ticket = await client.verifyIdToken({ idToken: credential, audience: clientId })
+      payload = ticket.getPayload()
+    } catch {
+      return reply.code(401).send({ error: 'Token Google inválido' })
+    }
+
+    if (!payload?.sub || !payload?.email) {
+      return reply.code(401).send({ error: 'Token Google inválido' })
+    }
+
+    const { sub: googleId, email, name = email } = payload
+
+    // 1. Busca por googleId (já vinculado)
+    let user = await prisma.user.findUnique({
+      where: { googleId },
+      select: { id: true, name: true, email: true, phone: true, createdAt: true },
+    })
+
+    // 2. Busca por email — vincula se encontrar
+    if (!user) {
+      const existing = await prisma.user.findUnique({ where: { email } })
+      if (existing) {
+        user = await prisma.user.update({
+          where: { id: existing.id },
+          data: { googleId },
+          select: { id: true, name: true, email: true, phone: true, createdAt: true },
+        })
+      }
+    }
+
+    // 3. Cria novo usuário
+    if (!user) {
+      user = await prisma.user.create({
+        data: { name, email, googleId, password: null },
+        select: { id: true, name: true, email: true, phone: true, createdAt: true },
+      })
+    }
+
+    const token = app.jwt.sign({ sub: user.id, email: user.email })
+    reply.setCookie('orbit_token', token, { httpOnly: true, path: '/', maxAge: 60 * 60 * 24 * 30 })
+
+    return { data: user }
+  })
 }
