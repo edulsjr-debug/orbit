@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, beforeAll, afterAll } from 'vitest'
 import Fastify from 'fastify'
 import cookie from '@fastify/cookie'
 import jwt from '@fastify/jwt'
@@ -38,6 +38,16 @@ async function buildApp() {
 }
 
 describe('POST /google', () => {
+  let app: Awaited<ReturnType<typeof buildApp>>
+
+  beforeAll(async () => {
+    app = await buildApp()
+  })
+
+  afterAll(async () => {
+    await app.close()
+  })
+
   beforeEach(() => {
     vi.clearAllMocks()
     process.env.GOOGLE_CLIENT_ID = 'test-client-id'
@@ -56,7 +66,6 @@ describe('POST /google', () => {
       createdAt: new Date('2026-01-01'),
     })
 
-    const app = await buildApp()
     const res = await app.inject({
       method: 'POST',
       url: '/google',
@@ -95,7 +104,6 @@ describe('POST /google', () => {
       createdAt: new Date('2026-01-01'),
     })
 
-    const app = await buildApp()
     const res = await app.inject({
       method: 'POST',
       url: '/google',
@@ -114,7 +122,6 @@ describe('POST /google', () => {
   it('retorna 401 para token inválido', async () => {
     mockVerifyIdToken.mockRejectedValue(new Error('Token inválido'))
 
-    const app = await buildApp()
     const res = await app.inject({
       method: 'POST',
       url: '/google',
