@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { api } from '@/lib/api'
+import { GoogleLogin } from '@react-oauth/google'
 
 function OrbitMark({ size = 84 }: { size?: number }) {
   return (
@@ -53,10 +54,40 @@ export default function LoginPage() {
       router.push('/inicio')
       router.refresh()
     } catch (err: any) {
-      setError(err.message)
+      const errCode = (err as any).code
+      if (errCode === 'USE_GOOGLE_LOGIN') {
+        setError('Esta conta foi criada com Google. Use o botão "Continuar com o Google" acima.')
+      } else {
+        setError(err.message)
+      }
       if (mode === 'login') {
-        setLoginFailed(true)
+        setLoginFailed(errCode !== 'USE_GOOGLE_LOGIN')
         setFailedEmail(fd.get('email') as string)
+      }
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function handleGoogleSuccess(credentialResponse: { credential?: string }) {
+    if (!credentialResponse.credential) {
+      setError('Falha ao autenticar com o Google. Tente novamente.')
+      return
+    }
+    setLoading(true)
+    setError('')
+    setLoginFailed(false)
+    setResetSent(false)
+    try {
+      await api.post('/auth/google', { credential: credentialResponse.credential })
+      router.push('/inicio')
+      router.refresh()
+    } catch (err: any) {
+      const errCode = (err as any).code
+      if (errCode === 'USE_GOOGLE_LOGIN') {
+        setError('Esta conta usa login com Google. Use o botão "Continuar com o Google" acima.')
+      } else {
+        setError(err.message)
       }
     } finally {
       setLoading(false)
@@ -174,6 +205,25 @@ export default function LoginPage() {
               >
                 Criar conta
               </button>
+            </div>
+
+            <div style={styles.googleSection}>
+              <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={() => setError('Falha ao autenticar com o Google. Tente novamente.')}
+                text="continue_with"
+                locale="pt-BR"
+                theme="outline"
+                shape="rectangular"
+                size="large"
+                width="450"
+              />
+            </div>
+
+            <div style={styles.divider}>
+              <span style={styles.dividerLine} />
+              <span style={styles.dividerText}>ou</span>
+              <span style={styles.dividerLine} />
             </div>
 
             <form onSubmit={handleSubmit} style={styles.form}>
@@ -565,5 +615,26 @@ const styles: Record<string, React.CSSProperties> = {
     color: '#166534',
     fontSize: 13,
     lineHeight: 1.6,
+  },
+  googleSection: {
+    display: 'flex',
+    justifyContent: 'center',
+  },
+  divider: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 12,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    background: 'rgba(5,11,20,0.12)',
+    display: 'block',
+  } as React.CSSProperties,
+  dividerText: {
+    fontSize: 12,
+    color: '#94A3B8',
+    fontWeight: 500,
+    letterSpacing: '0.04em',
   },
 }
