@@ -69,7 +69,7 @@ export async function authRoutes(app: FastifyInstance) {
       return reply.code(401).send({ error: 'E-mail ou senha incorretos' })
     }
     if (!user.password) {
-      return reply.code(401).send({ error: 'Esta conta usa login com Google. Clique em "Continuar com o Google".' })
+      return reply.code(401).send({ error: 'E-mail ou senha incorretos', code: 'USE_GOOGLE_LOGIN' })
     }
     if (user.password !== hashPassword(body.password)) {
       return reply.code(401).send({ error: 'E-mail ou senha incorretos' })
