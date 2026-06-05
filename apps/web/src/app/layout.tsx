@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import { PushSetup } from '@/components/PushSetup'
+import { GoogleProvider } from '@/components/GoogleProvider'
 
 export const metadata: Metadata = {
   title: 'Orbit — Organização com Estrutura',
@@ -28,8 +29,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="pt-BR">
       <body>
-        <PushSetup />
-        {children}
+        <GoogleProvider>
+          <PushSetup />
+          {children}
+        </GoogleProvider>
       </body>
     </html>
   )
