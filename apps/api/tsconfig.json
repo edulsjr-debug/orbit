@@ -8,7 +8,12 @@
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "baseUrl": ".",
+    "paths": {
+      "@orbit/database": ["../../packages/database/src/index.ts"],
+      "@orbit/types": ["../../packages/types/src/index.ts"]
+    }
   },
   "include": ["src"],
   "exclude": ["node_modules", "dist", "src/**/__tests__"]
