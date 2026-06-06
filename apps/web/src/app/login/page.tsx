@@ -203,13 +203,16 @@ export default function LoginPage() {
             </div>
 
             <div style={{ ...styles.googleSection, pointerEvents: loading ? 'none' : 'auto', opacity: loading ? 0.5 : 1 }}>
-              <GoogleLogin
-                onSuccess={handleGoogleSuccess}
-                onError={() => setError('Falha ao autenticar com o Google. Tente novamente.')}
-                text="continue_with"
-                theme="outline"
-                size="large"
-              />
+              <div style={styles.googleClip}>
+                <GoogleLogin
+                  onSuccess={handleGoogleSuccess}
+                  onError={() => setError('Falha ao autenticar com o Google. Tente novamente.')}
+                  text="continue_with"
+                  theme="outline"
+                  size="large"
+                  width={500}
+                />
+              </div>
             </div>
 
             <div style={styles.divider}>
@@ -610,6 +613,11 @@ const styles: Record<string, React.CSSProperties> = {
   },
   googleSection: {
     width: '100%',
+  },
+  googleClip: {
+    width: '100%',
+    borderRadius: 16,
+    overflow: 'hidden',
   },
   divider: {
     display: 'flex',
