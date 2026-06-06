@@ -210,7 +210,7 @@ export default function LoginPage() {
                   text="continue_with"
                   theme="outline"
                   size="large"
-                  width={500}
+                  width={800}
                 />
               </div>
             </div>
@@ -618,6 +618,7 @@ const styles: Record<string, React.CSSProperties> = {
     width: '100%',
     borderRadius: 16,
     overflow: 'hidden',
+    display: 'flex',
   },
   divider: {
     display: 'flex',
