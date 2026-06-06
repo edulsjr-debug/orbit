@@ -4,6 +4,7 @@ import { prisma } from '@orbit/database'
 import { createHash, randomBytes } from 'crypto'
 import { sendWelcomeEmail, sendPasswordResetEmail } from '../services/notifications.js'
 import { OAuth2Client } from 'google-auth-library'
+import { capture } from '../services/analytics.js'
 
 const hashPassword = (pw: string) =>
   createHash('sha256').update(pw + (process.env.SALT ?? 'orbit-salt')).digest('hex')
@@ -50,6 +51,7 @@ export async function authRoutes(app: FastifyInstance) {
       app.log.error({ err }, 'Falha ao enviar email de boas-vindas')
     )
 
+    capture(user.id, 'user_signed_up', { method: 'email' })
     return { data: user }
   })
 
@@ -79,6 +81,7 @@ export async function authRoutes(app: FastifyInstance) {
     reply.setCookie('orbit_token', token, { httpOnly: true, path: '/', maxAge: 60 * 60 * 24 * 30 })
 
     const { password: _, ...safe } = user
+    capture(user.id, 'user_logged_in', { method: 'email' })
     return { data: safe }
   })
 
@@ -177,6 +180,8 @@ export async function authRoutes(app: FastifyInstance) {
       select: { id: true, name: true, email: true, phone: true, createdAt: true },
     })
 
+    let isNew = false
+
     // 2. Busca por email — vincula se encontrar
     if (!user) {
       const existing = await prisma.user.findUnique({ where: { email } })
@@ -195,11 +200,13 @@ export async function authRoutes(app: FastifyInstance) {
         data: { name, email, googleId, password: null },
         select: { id: true, name: true, email: true, phone: true, createdAt: true },
       })
+      isNew = true
     }
 
     const token = app.jwt.sign({ sub: user.id, email: user.email })
     reply.setCookie('orbit_token', token, { httpOnly: true, path: '/', maxAge: 60 * 60 * 24 * 30 })
 
+    capture(user.id, isNew ? 'user_signed_up' : 'user_logged_in', { method: 'google' })
     return { data: user }
   })
 }
