@@ -208,9 +208,7 @@ export default function LoginPage() {
                 onError={() => setError('Falha ao autenticar com o Google. Tente novamente.')}
                 text="continue_with"
                 theme="outline"
-                shape="rectangular"
                 size="large"
-                width="450"
               />
             </div>
 
@@ -611,8 +609,7 @@ const styles: Record<string, React.CSSProperties> = {
     lineHeight: 1.6,
   },
   googleSection: {
-    display: 'flex',
-    justifyContent: 'center',
+    width: '100%',
   },
   divider: {
     display: 'flex',
