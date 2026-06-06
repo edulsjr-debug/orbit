@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { api } from '@/lib/api'
 import { GoogleLogin } from '@react-oauth/google'
@@ -25,6 +25,8 @@ function OrbitMark({ size = 84 }: { size?: number }) {
 
 export default function LoginPage() {
   const router = useRouter()
+  const googleWrapRef = useRef<HTMLDivElement>(null)
+  const [googleWidth, setGoogleWidth] = useState(400)
   const [mode, setMode] = useState<'login' | 'register'>('login')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -32,6 +34,15 @@ export default function LoginPage() {
   const [resetSent, setResetSent] = useState(false)
   const [resetLoading, setResetLoading] = useState(false)
   const [failedEmail, setFailedEmail] = useState('')
+
+  useEffect(() => {
+    if (!googleWrapRef.current) return
+    const ro = new ResizeObserver(entries => {
+      setGoogleWidth(Math.floor(entries[0].contentRect.width))
+    })
+    ro.observe(googleWrapRef.current)
+    return () => ro.disconnect()
+  }, [])
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -203,14 +214,14 @@ export default function LoginPage() {
             </div>
 
             <div style={{ ...styles.googleSection, pointerEvents: loading ? 'none' : 'auto', opacity: loading ? 0.5 : 1 }}>
-              <div style={styles.googleClip}>
+              <div ref={googleWrapRef} style={styles.googleClip}>
                 <GoogleLogin
                   onSuccess={handleGoogleSuccess}
                   onError={() => setError('Falha ao autenticar com o Google. Tente novamente.')}
                   text="continue_with"
                   theme="outline"
                   size="large"
-                  width={800}
+                  width={googleWidth}
                 />
               </div>
             </div>
