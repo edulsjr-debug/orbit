@@ -207,7 +207,6 @@ export default function LoginPage() {
                 onSuccess={handleGoogleSuccess}
                 onError={() => setError('Falha ao autenticar com o Google. Tente novamente.')}
                 text="continue_with"
-                locale="pt-BR"
                 theme="outline"
                 shape="rectangular"
                 size="large"
