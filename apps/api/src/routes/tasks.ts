@@ -1,6 +1,7 @@
 import { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { prisma } from '@orbit/database'
+import { capture } from '../services/analytics.js'
 
 function toStr(v: unknown): string {
   if (v instanceof Date) return v.toISOString()
@@ -67,6 +68,7 @@ export async function taskRoutes(app: FastifyInstance) {
     const body = taskSchema.parse(req.body)
     const task = await prisma.task.create({ data: { ...body, userId: userId(req) } })
     reply.code(201)
+    capture(userId(req), 'task_created')
     return { data: task }
   })
 

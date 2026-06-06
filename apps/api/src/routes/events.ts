@@ -2,6 +2,7 @@ import { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { prisma } from '@orbit/database'
 import { scheduleEventNotifications, cancelEventNotifications } from '../services/notifications'
+import { capture } from '../services/analytics.js'
 
 function toStr(v: unknown): string {
   if (v instanceof Date) return v.toISOString()
@@ -80,6 +81,9 @@ export async function eventRoutes(app: FastifyInstance) {
     })
     await scheduleEventNotifications(event)
     reply.code(201)
+    capture(userId(req), 'appointment_created', {
+      has_notification: body.notifPush || body.notifEmail || body.notifWhatsapp,
+    })
     return { data: event }
   })
 
