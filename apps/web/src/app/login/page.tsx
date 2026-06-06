@@ -629,7 +629,6 @@ const styles: Record<string, React.CSSProperties> = {
     width: '100%',
     borderRadius: 16,
     overflow: 'hidden',
-    display: 'flex',
   },
   divider: {
     display: 'flex',
