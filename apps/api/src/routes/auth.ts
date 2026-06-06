@@ -154,25 +154,22 @@ export async function authRoutes(app: FastifyInstance) {
 
   // Login com Google
   app.post('/google', async (req, reply) => {
-    const { credential } = z.object({ credential: z.string().max(4096) }).parse(req.body)
+    const { access_token } = z.object({ access_token: z.string().max(4096) }).parse(req.body)
 
-    const clientId = process.env.GOOGLE_CLIENT_ID
-    if (!clientId) return reply.code(500).send({ error: 'Google login não configurado' })
-    const client = new OAuth2Client(clientId)
-
-    let payload
+    let googleId: string, email: string, name: string
     try {
-      const ticket = await client.verifyIdToken({ idToken: credential, audience: clientId })
-      payload = ticket.getPayload()
+      const res = await fetch(`https://www.googleapis.com/oauth2/v3/userinfo`, {
+        headers: { Authorization: `Bearer ${access_token}` },
+      })
+      if (!res.ok) throw new Error('userinfo failed')
+      const info = await res.json() as { sub: string; email: string; name?: string }
+      if (!info.sub || !info.email) throw new Error('missing fields')
+      googleId = info.sub
+      email = info.email
+      name = info.name ?? info.email
     } catch {
       return reply.code(401).send({ error: 'Token Google inválido' })
     }
-
-    if (!payload?.sub || !payload?.email) {
-      return reply.code(401).send({ error: 'Token Google inválido' })
-    }
-
-    const { sub: googleId, email, name = email } = payload
 
     // 1. Busca por googleId (já vinculado)
     let user = await prisma.user.findUnique({
