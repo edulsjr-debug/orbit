@@ -7,7 +7,7 @@ if (!clientId) throw new Error('NEXT_PUBLIC_GOOGLE_CLIENT_ID is not set')
 
 export function GoogleProvider({ children }: { children: React.ReactNode }) {
   return (
-    <GoogleOAuthProvider clientId={clientId}>
+    <GoogleOAuthProvider clientId={clientId!}>
       {children}
     </GoogleOAuthProvider>
   )
