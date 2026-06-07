@@ -1,8 +1,24 @@
 import type { Metadata, Viewport } from 'next'
+import { Instrument_Serif, JetBrains_Mono } from 'next/font/google'
 import './globals.css'
 import { PushSetup } from '@/components/PushSetup'
 import { GoogleProvider } from '@/components/GoogleProvider'
 import { PostHogProvider } from '@/components/PostHogProvider'
+
+const instrumentSerif = Instrument_Serif({
+  weight: '400',
+  style: 'italic',
+  subsets: ['latin'],
+  variable: '--font-serif',
+  display: 'swap',
+})
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ['latin'],
+  weight: ['400', '500'],
+  variable: '--font-mono',
+  display: 'swap',
+})
 
 export const metadata: Metadata = {
   title: 'Orbit — Organização com Estrutura',
@@ -23,12 +39,12 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  themeColor: '#050B14',
+  themeColor: '#2F6FE0',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="pt-BR">
+    <html lang="pt-BR" className={`${instrumentSerif.variable} ${jetbrainsMono.variable}`}>
       <body>
         <PostHogProvider>
           <GoogleProvider>
