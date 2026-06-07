@@ -6,6 +6,7 @@ import { api } from '@/lib/api'
 import { useIsMobile } from '@/lib/use-mobile'
 import { TaskModal } from '@/components/TaskModal'
 import type { TaskForModal, ProjectForModal } from '@/components/TaskModal'
+import { AlertTriangle } from 'lucide-react'
 
 type Priority = 'low' | 'medium' | 'high'
 type Status = 'pending' | 'in_progress' | 'done'
@@ -33,9 +34,9 @@ const PRIORITY_LABEL: Record<Priority, string> = {
 }
 
 const PRIORITY_COLOR: Record<Priority, string> = {
-  low: '#0F766E',
-  medium: '#B8924F',
-  high: '#991B1B',
+  low: '#22C55E',
+  medium: '#F59E0B',
+  high: '#EF4444',
 }
 
 const STATUS_LABEL: Record<Status, string> = {
@@ -45,9 +46,9 @@ const STATUS_LABEL: Record<Status, string> = {
 }
 
 const STATUS_COLOR: Record<Status, string> = {
-  pending: '#64748B',
-  in_progress: '#1D4ED8',
-  done: '#0F766E',
+  pending: 'var(--fg-3, #6B7280)',
+  in_progress: 'var(--brand-500, #2F6FE0)',
+  done: '#22C55E',
 }
 
 const CHECK_LABEL: Record<Status, string> = {
@@ -57,9 +58,9 @@ const CHECK_LABEL: Record<Status, string> = {
 }
 
 const CHECK_LABEL_COLOR: Record<Status, string> = {
-  pending: '#CBD5E1',
-  in_progress: '#1D4ED8',
-  done: '#0F766E',
+  pending: 'var(--ink-200, #E5E7EB)',
+  in_progress: 'var(--brand-500, #2F6FE0)',
+  done: '#22C55E',
 }
 
 const fetcher = (url: string) => api.get<any>(url).then((r: any) => r.data)
@@ -140,10 +141,10 @@ export default function TarefasPage() {
           ...(isMobile ? S.metricsMobile : null),
         }}
       >
-        <MetricCard label="Todas" value={counts.all} accent="#050B14" />
-        <MetricCard label="Pendentes" value={counts.pending} accent="#64748B" />
-        <MetricCard label="Em andamento" value={counts.in_progress} accent="#1D4ED8" />
-        <MetricCard label="Concluídas" value={counts.done} accent="#0F766E" />
+        <MetricCard label="Todas" value={counts.all} accent="var(--fg-1, #111827)" />
+        <MetricCard label="Pendentes" value={counts.pending} accent="var(--fg-3, #6B7280)" />
+        <MetricCard label="Em andamento" value={counts.in_progress} accent="var(--brand-500, #2F6FE0)" />
+        <MetricCard label="Concluídas" value={counts.done} accent="#22C55E" />
       </section>
 
       <div style={S.filters}>
@@ -170,7 +171,7 @@ export default function TarefasPage() {
             value={projectFilter}
             onChange={(e) => setProjectFilter(e.target.value)}
           >
-            <option value="">📁 Todos os projetos</option>
+            <option value="">Todos os projetos</option>
             {projects.map((p) => (
               <option key={p.id} value={p.id}>
                 {p.emoji} {p.name}
@@ -201,7 +202,7 @@ export default function TarefasPage() {
                   style={{
                     ...S.card,
                     opacity: t.status === 'done' ? 0.55 : 1,
-                    borderColor: overdue ? 'rgba(153,27,27,0.14)' : 'rgba(5,11,20,0.08)',
+                    borderColor: overdue ? 'rgba(220,38,38,0.2)' : 'var(--ink-200, #E5E7EB)',
                   }}
                 >
                   <div style={{ ...S.cardMain, cursor: 'pointer' }} onClick={() => setExpandedId(expandedId === t.id ? null : t.id)}>
@@ -243,11 +244,11 @@ export default function TarefasPage() {
                         <span
                           style={{
                             ...S.tag,
-                            background: `${PRIORITY_COLOR[t.priority]}16`,
+                            background: `${PRIORITY_COLOR[t.priority]}18`,
                             color: PRIORITY_COLOR[t.priority],
                           }}
                         >
-                          ● {PRIORITY_LABEL[t.priority]}
+                          {PRIORITY_LABEL[t.priority]}
                         </span>
                         {t.project && (
                           <span
@@ -265,11 +266,14 @@ export default function TarefasPage() {
                           <span
                             style={{
                               ...S.cardDate,
-                              color: overdue ? '#991B1B' : '#94A3B8',
-                              fontWeight: overdue ? 700 : 400,
+                              color: overdue ? '#EF4444' : 'var(--fg-3, #6B7280)',
+                              fontWeight: overdue ? 600 : 400,
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: 3,
                             }}
                           >
-                            {overdue ? '⚠ ' : ''}
+                            {overdue ? <AlertTriangle size={11} strokeWidth={1.75} /> : null}
                             {new Date(t.dueAt).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' })}
                           </span>
                         )}
@@ -304,7 +308,7 @@ export default function TarefasPage() {
                       </button>
                       <span style={S.actionSep}>·</span>
                       <button
-                        style={{ ...S.actionBtn, color: '#991B1B' }}
+                        style={{ ...S.actionBtn, color: '#EF4444' }}
                         onClick={() => remove(t.id)}
                       >
                         Remover
@@ -403,31 +407,31 @@ const S: Record<string, React.CSSProperties> = {
   },
   eyebrow: {
     fontSize: 11,
-    fontWeight: 700,
+    fontWeight: 600,
     letterSpacing: '0.14em',
     textTransform: 'uppercase',
-    color: '#8A6A2F',
+    color: 'var(--brand-500, #2F6FE0)',
     marginBottom: 10,
   },
   title: {
-    fontSize: 'clamp(28px, 4vw, 38px)',
+    fontSize: 'clamp(26px, 4vw, 36px)',
     fontWeight: 700,
-    letterSpacing: '-0.05em',
-    color: '#050B14',
+    letterSpacing: '-0.04em',
+    color: 'var(--fg-1, #111827)',
   },
   sub: {
     marginTop: 10,
     fontSize: 14,
-    color: '#64748B',
+    color: 'var(--fg-3, #6B7280)',
     lineHeight: 1.7,
   },
   btnPrimary: {
     padding: '12px 18px',
-    background: 'linear-gradient(135deg, #050B14 0%, #101C2B 100%)',
-    color: '#F5F2EC',
+    background: 'var(--brand-500, #2F6FE0)',
+    color: '#fff',
     border: 'none',
-    borderRadius: 14,
-    fontWeight: 700,
+    borderRadius: 10,
+    fontWeight: 600,
     fontSize: 13,
     cursor: 'pointer',
   },
@@ -442,11 +446,12 @@ const S: Record<string, React.CSSProperties> = {
   },
   metricCard: {
     position: 'relative',
-    background: '#FFFFFF',
-    border: '1px solid rgba(5,11,20,0.08)',
-    borderRadius: 20,
+    background: 'var(--bg, #FFFFFF)',
+    border: '1px solid var(--ink-200, #E5E7EB)',
+    borderRadius: 14,
     padding: '18px 18px 16px',
     overflow: 'hidden',
+    boxShadow: '0 1px 2px rgba(11,15,20,0.04)',
   },
   metricAccent: {
     position: 'absolute',
@@ -456,16 +461,20 @@ const S: Record<string, React.CSSProperties> = {
     height: 4,
   },
   metricLabel: {
-    fontSize: 12,
-    color: '#64748B',
+    fontSize: 11,
+    fontWeight: 600,
+    textTransform: 'uppercase' as const,
+    letterSpacing: '0.08em',
+    color: 'var(--fg-3, #6B7280)',
   },
   metricValue: {
     marginTop: 10,
-    fontSize: 34,
+    fontSize: 32,
     fontWeight: 700,
     lineHeight: 1,
-    letterSpacing: '-0.05em',
-    color: '#050B14',
+    letterSpacing: '-0.03em',
+    fontVariantNumeric: 'tabular-nums',
+    color: 'var(--fg-1, #111827)',
   },
   filters: {
     display: 'flex',
@@ -474,29 +483,29 @@ const S: Record<string, React.CSSProperties> = {
     flexWrap: 'wrap',
   },
   filter: {
-    padding: '10px 14px',
+    padding: '8px 14px',
     borderRadius: 999,
-    border: '1px solid rgba(5,11,20,0.08)',
-    background: '#FFFFFF',
+    border: '1px solid var(--ink-200, #E5E7EB)',
+    background: 'var(--bg, #FFFFFF)',
     fontSize: 13,
     cursor: 'pointer',
-    color: '#64748B',
+    color: 'var(--fg-3, #6B7280)',
     display: 'flex',
     alignItems: 'center',
     gap: 8,
-    fontWeight: 600,
+    fontWeight: 500,
   },
   filterActive: {
-    background: '#FBF4E4',
-    borderColor: 'rgba(184,146,79,0.26)',
-    color: '#8A6A2F',
+    background: 'var(--brand-50, #F4F8FE)',
+    borderColor: 'var(--brand-200, #BFDBFE)',
+    color: 'var(--brand-700, #0E335A)',
   },
   filterBadge: {
-    background: 'rgba(5,11,20,0.07)',
+    background: 'rgba(11,15,20,0.07)',
     borderRadius: 999,
     padding: '2px 8px',
     fontSize: 11,
-    fontWeight: 700,
+    fontWeight: 600,
   },
   mainGrid: {
     display: 'grid',
@@ -507,31 +516,33 @@ const S: Record<string, React.CSSProperties> = {
     gridTemplateColumns: '1fr',
   },
   panel: {
-    background: '#FFFFFF',
-    border: '1px solid rgba(5,11,20,0.08)',
-    borderRadius: 24,
+    background: 'var(--bg, #FFFFFF)',
+    border: '1px solid var(--ink-200, #E5E7EB)',
+    borderRadius: 14,
     overflow: 'hidden',
+    boxShadow: '0 1px 2px rgba(11,15,20,0.04)',
   },
   sidePanel: {
-    background: '#FFFFFF',
-    border: '1px solid rgba(5,11,20,0.08)',
-    borderRadius: 24,
+    background: 'var(--bg, #FFFFFF)',
+    border: '1px solid var(--ink-200, #E5E7EB)',
+    borderRadius: 14,
     overflow: 'hidden',
     minHeight: 320,
+    boxShadow: '0 1px 2px rgba(11,15,20,0.04)',
   },
   panelHead: {
     padding: '18px 20px',
-    borderBottom: '1px solid #EDF1F4',
+    borderBottom: '1px solid var(--ink-100, #F3F4F6)',
   },
   panelTitle: {
-    fontSize: 15,
-    fontWeight: 700,
-    color: '#050B14',
+    fontSize: 14,
+    fontWeight: 600,
+    color: 'var(--fg-1, #111827)',
   },
   panelSub: {
-    marginTop: 4,
+    marginTop: 2,
     fontSize: 12,
-    color: '#64748B',
+    color: 'var(--fg-3, #6B7280)',
   },
   list: {
     display: 'flex',
@@ -542,15 +553,15 @@ const S: Record<string, React.CSSProperties> = {
   empty: {
     padding: 42,
     textAlign: 'center',
-    color: '#94A3B8',
+    color: 'var(--fg-3, #6B7280)',
     fontSize: 14,
   },
   card: {
-    background: '#FFFFFF',
+    background: 'var(--bg, #FFFFFF)',
     borderWidth: 1,
     borderStyle: 'solid',
-    borderColor: 'rgba(5,11,20,0.08)',
-    borderRadius: 20,
+    borderColor: 'var(--ink-200, #E5E7EB)',
+    borderRadius: 12,
     padding: '14px 16px',
     transition: 'opacity .15s',
   },
@@ -563,51 +574,51 @@ const S: Record<string, React.CSSProperties> = {
   },
   checkBtn: {
     width: 32, height: 32, borderRadius: 10,
-    border: '2px solid #E2E8F0', background: 'none', cursor: 'pointer',
+    border: '2px solid var(--ink-200, #E5E7EB)', background: 'none', cursor: 'pointer',
     fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center',
     transition: 'all .15s',
   },
-  checkDone: { background: '#0F766E', borderColor: '#0F766E', color: '#fff' },
-  checkProgress: { background: '#EFF6FF', borderColor: '#1D4ED8', color: '#1D4ED8' },
+  checkDone: { background: '#22C55E', borderColor: '#22C55E', color: '#fff' },
+  checkProgress: { background: 'var(--brand-50, #F4F8FE)', borderColor: 'var(--brand-500, #2F6FE0)', color: 'var(--brand-500, #2F6FE0)' },
   checkLabelText: {
-    fontSize: 9, fontWeight: 700, letterSpacing: '0.04em',
+    fontSize: 9, fontWeight: 600, letterSpacing: '0.04em',
     textTransform: 'uppercase', whiteSpace: 'nowrap',
   },
   cardTitleRow: {
     display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6,
   },
   cardTitle: {
-    fontSize: 15, fontWeight: 700, color: '#0F172A', lineHeight: 1.3,
+    fontSize: 14, fontWeight: 600, color: 'var(--fg-1, #111827)', lineHeight: 1.3,
   },
   cardTags: {
     display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap',
   },
   tag: {
-    fontSize: 11, fontWeight: 600, padding: '3px 9px', borderRadius: 999,
+    fontSize: 11, fontWeight: 600, padding: '3px 9px', borderRadius: 6,
   },
   cardDate: { fontSize: 11 },
   cardDesc: {
-    fontSize: 13, color: '#475569', lineHeight: 1.6,
+    fontSize: 13, color: 'var(--fg-2, #374151)', lineHeight: 1.6,
     marginTop: 10, paddingTop: 10,
-    borderTop: '1px solid #F3F5F7',
+    borderTop: '1px solid var(--ink-100, #F3F4F6)',
     whiteSpace: 'pre-wrap' as const,
   },
   cardFooter: {
     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-    marginTop: 10, paddingTop: 10, borderTop: '1px dashed #EDF1F4',
+    marginTop: 10, paddingTop: 10, borderTop: '1px dashed var(--ink-100, #F3F4F6)',
   },
   statusLabel: { fontSize: 11, fontWeight: 600 },
   cardActions: { display: 'flex', gap: 4, alignItems: 'center' },
   actionBtn: {
     fontSize: 11, padding: '5px 10px', borderRadius: 8,
-    border: '1px solid #EDF1F4', background: 'transparent',
-    color: '#64748B', cursor: 'pointer', fontWeight: 600,
+    border: '1px solid var(--ink-100, #F3F4F6)', background: 'transparent',
+    color: 'var(--fg-3, #6B7280)', cursor: 'pointer', fontWeight: 500,
   },
-  actionSep: { color: '#E2E8F0', fontSize: 14, userSelect: 'none' },
+  actionSep: { color: 'var(--ink-200, #E5E7EB)', fontSize: 14, userSelect: 'none' },
   editBadge: {
-    fontSize: 10, fontWeight: 700, color: '#8A6A2F',
-    background: '#FBF4E4', border: '1px solid rgba(184,146,79,0.24)',
-    padding: '3px 7px', borderRadius: 999,
+    fontSize: 10, fontWeight: 600, color: 'var(--brand-700, #0E335A)',
+    background: 'var(--brand-50, #F4F8FE)', border: '1px solid var(--brand-200, #BFDBFE)',
+    padding: '3px 7px', borderRadius: 6,
   },
   historyBody: {
     padding: 16,
@@ -615,7 +626,7 @@ const S: Record<string, React.CSSProperties> = {
     gap: 12,
   },
   historyEmpty: {
-    color: '#94A3B8',
+    color: 'var(--fg-3, #6B7280)',
     fontSize: 13,
     lineHeight: 1.7,
   },
@@ -624,13 +635,13 @@ const S: Record<string, React.CSSProperties> = {
     gap: 10,
     alignItems: 'flex-start',
     paddingBottom: 12,
-    borderBottom: '1px solid #F3F5F7',
+    borderBottom: '1px solid var(--ink-100, #F3F4F6)',
   },
   historyDot: {
     width: 8,
     height: 8,
     borderRadius: '50%',
-    background: '#B8924F',
+    background: 'var(--brand-400, #5B8FEA)',
     marginTop: 7,
     flexShrink: 0,
   },
@@ -643,13 +654,14 @@ const S: Record<string, React.CSSProperties> = {
   },
   historyField: {
     fontSize: 12,
-    fontWeight: 700,
-    color: '#050B14',
+    fontWeight: 600,
+    color: 'var(--fg-1, #111827)',
     textTransform: 'capitalize',
   },
   historyDate: {
     fontSize: 11,
-    color: '#94A3B8',
+    color: 'var(--fg-3, #6B7280)',
+    fontFamily: 'var(--font-mono)',
   },
   historyValues: {
     display: 'flex',
@@ -659,12 +671,12 @@ const S: Record<string, React.CSSProperties> = {
     fontSize: 12,
   },
   historyOld: {
-    color: '#991B1B',
+    color: '#EF4444',
   },
   historyArrow: {
-    color: '#94A3B8',
+    color: 'var(--fg-3, #6B7280)',
   },
   historyNew: {
-    color: '#0F766E',
+    color: '#22C55E',
   },
 }
