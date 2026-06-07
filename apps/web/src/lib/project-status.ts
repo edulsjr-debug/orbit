@@ -17,27 +17,27 @@ export function projectStatus(p: ProjectForStatus): ProjectStatusKey {
 }
 
 export const STATUS_LABEL: Record<ProjectStatusKey, string> = {
-  concluido: '● Concluído',
-  atrasado:  '⚠ Atrasado',
-  no_prazo:  '✓ No prazo',
+  concluido: 'Concluído',
+  atrasado:  'Atrasado',
+  no_prazo:  'No prazo',
   sem_prazo: '',
 }
 
 export const STATUS_PILL_STYLE: Record<ProjectStatusKey, CSSProperties> = {
   concluido: {
-    background: 'rgba(99,102,241,.10)',
-    color: '#6366f1',
-    border: '1px solid rgba(99,102,241,.18)',
+    background: 'var(--brand-50, #F4F8FE)',
+    color: 'var(--brand-700, #0E335A)',
+    border: '1px solid var(--brand-200, #BFDBFE)',
   },
   atrasado: {
-    background: 'rgba(153,27,27,.10)',
-    color: '#991B1B',
-    border: '1px solid rgba(153,27,27,.18)',
+    background: 'rgba(220,38,38,.08)',
+    color: '#DC2626',
+    border: '1px solid rgba(220,38,38,.2)',
   },
   no_prazo: {
-    background: 'rgba(15,118,110,.10)',
-    color: '#0F766E',
-    border: '1px solid rgba(15,118,110,.18)',
+    background: 'rgba(34,197,94,.08)',
+    color: '#16A34A',
+    border: '1px solid rgba(34,197,94,.2)',
   },
   sem_prazo: { display: 'none' },
 }

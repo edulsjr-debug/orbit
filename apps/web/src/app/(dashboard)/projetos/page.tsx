@@ -8,6 +8,8 @@ import { useIsMobile } from '@/lib/use-mobile'
 import { projectStatus, STATUS_LABEL, STATUS_PILL_STYLE } from '@/lib/project-status'
 import { TaskModal } from '@/components/TaskModal'
 import type { ProjectForModal } from '@/components/TaskModal'
+import { FolderKanban } from 'lucide-react'
+import { Progress } from '@/components/ui/Progress'
 
 type Project = {
   id: string
@@ -32,19 +34,19 @@ type ProjectForm = {
 
 const EMOJIS = ['📁', '🚀', '💡', '🎯', '🛠', '📊', '🌟', '📝', '🔧', '🎨', '💼', '🏗']
 const COLORS = [
-  '#B8924F',
-  '#1D4ED8',
-  '#0F766E',
-  '#991B1B',
-  '#9333EA',
-  '#F97316',
+  '#2F6FE0',
+  '#7C3AED',
+  '#22C55E',
+  '#EF4444',
+  '#F59E0B',
   '#0891B2',
+  '#EC4899',
   '#64748B',
 ]
 const EMPTY_FORM: ProjectForm = {
   name: '',
   description: '',
-  color: '#B8924F',
+  color: '#2F6FE0',
   emoji: '📁',
   deadline: '',
 }
@@ -146,7 +148,7 @@ export default function ProjetosPage() {
 
       {projects.length === 0 ? (
         <div style={S.emptyState}>
-          <div style={S.emptyEmoji}>📁</div>
+          <div style={S.emptyIcon}><FolderKanban size={40} strokeWidth={1.5} color="var(--brand-400, #5B8FEA)" /></div>
           <div style={S.emptyTitle}>Nenhum projeto ainda</div>
           <div style={S.emptyText}>
             Crie projetos para organizar frentes, consolidar tarefas e acompanhar entregas.
@@ -210,9 +212,7 @@ export default function ProjetosPage() {
                   </div>
 
                   <div style={S.progressRow}>
-                    <div style={S.progressTrack}>
-                      <div style={{ ...S.progressFill, background: p.color, width: `${progress}%` }} />
-                    </div>
+                    <Progress value={progress} tone="brand" style={{ flex: 1 }} />
                     <span style={S.progressLabel}>{Math.round(progress)}%</span>
                   </div>
 
@@ -303,7 +303,7 @@ export default function ProjetosPage() {
                       style={{
                         ...S.colorBtn,
                         background: color,
-                        border: form.color === color ? '3px solid #050B14' : '3px solid transparent',
+                        border: form.color === color ? '3px solid var(--brand-600, #1E4FA0)' : '3px solid transparent',
                       }}
                       onClick={() => setForm({ ...form, color })}
                     />
@@ -347,86 +347,94 @@ const S: Record<string, React.CSSProperties> = {
   },
   eyebrow: {
     fontSize: 11,
-    fontWeight: 700,
+    fontWeight: 600,
     letterSpacing: '0.14em',
     textTransform: 'uppercase',
-    color: '#8A6A2F',
+    color: 'var(--brand-500, #2F6FE0)',
     marginBottom: 10,
   },
   title: {
-    fontSize: 'clamp(28px, 4vw, 38px)',
+    fontSize: 'clamp(26px, 4vw, 36px)',
     fontWeight: 700,
-    letterSpacing: '-0.05em',
-    color: '#050B14',
+    letterSpacing: '-0.04em',
+    color: 'var(--fg-1, #111827)',
   },
   sub: {
     marginTop: 10,
     fontSize: 14,
-    color: '#64748B',
+    color: 'var(--fg-3, #6B7280)',
     lineHeight: 1.7,
   },
   btnPrimary: {
     padding: '12px 18px',
-    background: 'linear-gradient(135deg, #050B14 0%, #101C2B 100%)',
-    color: '#F5F2EC',
+    background: 'var(--brand-500, #2F6FE0)',
+    color: '#fff',
     border: 'none',
-    borderRadius: 14,
-    fontWeight: 700,
+    borderRadius: 10,
+    fontWeight: 600,
     fontSize: 13,
     cursor: 'pointer',
   },
   btnGhost: {
     padding: '12px 18px',
-    background: '#F4F6F8',
-    color: '#475569',
-    border: '1px solid rgba(5,11,20,0.08)',
-    borderRadius: 14,
-    fontWeight: 600,
+    background: 'var(--bg-subtle, #FAFBFC)',
+    color: 'var(--fg-2, #374151)',
+    border: '1px solid var(--ink-200, #E5E7EB)',
+    borderRadius: 10,
+    fontWeight: 500,
     fontSize: 13,
     cursor: 'pointer',
   },
   emptyState: {
     textAlign: 'center',
     padding: '70px 24px',
-    background: '#FFFFFF',
-    borderRadius: 24,
-    border: '1px solid rgba(5,11,20,0.08)',
+    background: 'var(--bg, #FFFFFF)',
+    borderRadius: 14,
+    border: '1px solid var(--ink-200, #E5E7EB)',
+    boxShadow: '0 1px 2px rgba(11,15,20,0.04)',
   },
-  emptyEmoji: {
-    fontSize: 48,
-    marginBottom: 14,
+  emptyIcon: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 72,
+    height: 72,
+    borderRadius: '50%',
+    background: 'var(--brand-50, #F4F8FE)',
+    margin: '0 auto 16px',
   },
   emptyTitle: {
-    fontWeight: 700,
-    fontSize: 18,
-    color: '#050B14',
+    fontWeight: 600,
+    fontSize: 17,
+    color: 'var(--fg-1, #111827)',
     marginBottom: 8,
   },
   emptyText: {
-    color: '#94A3B8',
+    color: 'var(--fg-3, #6B7280)',
     fontSize: 14,
     marginBottom: 22,
     lineHeight: 1.7,
   },
   projectsPanel: {
-    background: '#FFFFFF',
-    borderRadius: 24,
-    border: '1px solid rgba(5,11,20,0.08)',
+    background: 'var(--bg, #FFFFFF)',
+    borderRadius: 14,
+    border: '1px solid var(--ink-200, #E5E7EB)',
     overflow: 'hidden',
+    boxShadow: '0 1px 2px rgba(11,15,20,0.04)',
   },
   panelHead: {
     padding: '18px 20px',
-    borderBottom: '1px solid #EDF1F4',
+    borderBottom: '1px solid var(--ink-100, #F3F4F6)',
   },
   panelTitle: {
-    fontSize: 15,
-    fontWeight: 700,
-    color: '#050B14',
+    fontSize: 14,
+    fontWeight: 600,
+    color: 'var(--fg-1, #111827)',
   },
   panelSub: {
-    marginTop: 4,
+    marginTop: 2,
     fontSize: 12,
-    color: '#64748B',
+    color: 'var(--fg-3, #6B7280)',
   },
   grid: {
     display: 'grid',
@@ -436,12 +444,13 @@ const S: Record<string, React.CSSProperties> = {
   },
   card: {
     position: 'relative',
-    background: '#FBFCFD',
-    borderRadius: 20,
-    border: '1px solid rgba(5,11,20,0.08)',
+    background: 'var(--bg-subtle, #FAFBFC)',
+    borderRadius: 12,
+    border: '1px solid var(--ink-200, #E5E7EB)',
     padding: 18,
     cursor: 'pointer',
     overflow: 'hidden',
+    boxShadow: '0 1px 2px rgba(11,15,20,0.04)',
   },
   cardBar: {
     position: 'absolute',
@@ -457,25 +466,26 @@ const S: Record<string, React.CSSProperties> = {
     marginBottom: 10,
   },
   emojiBox: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
+    width: 42,
+    height: 42,
+    borderRadius: 12,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    fontSize: 22,
+    fontSize: 20,
     flexShrink: 0,
   },
   cardName: {
-    fontSize: 15,
-    fontWeight: 700,
+    fontSize: 14,
+    fontWeight: 600,
     lineHeight: 1.35,
-    color: '#050B14',
+    color: 'var(--fg-1, #111827)',
   },
   cardDeadline: {
-    marginTop: 5,
+    marginTop: 4,
     fontSize: 11,
-    color: '#94A3B8',
+    color: 'var(--fg-3, #6B7280)',
+    fontFamily: 'var(--font-mono)',
   },
   cardActions: {
     display: 'flex',
@@ -485,7 +495,7 @@ const S: Record<string, React.CSSProperties> = {
   },
   cardDesc: {
     fontSize: 13,
-    color: '#64748B',
+    color: 'var(--fg-3, #6B7280)',
     marginBottom: 14,
     lineHeight: 1.6,
   },
@@ -495,64 +505,53 @@ const S: Record<string, React.CSSProperties> = {
     gap: 10,
     marginTop: 8,
   },
-  progressTrack: {
-    flex: 1,
-    height: 8,
-    background: '#E2E8F0',
-    borderRadius: 999,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
-    borderRadius: 999,
-    transition: 'width .3s',
-  },
   progressLabel: {
     fontSize: 11,
-    color: '#64748B',
-    fontWeight: 700,
+    color: 'var(--fg-3, #6B7280)',
+    fontWeight: 600,
     flexShrink: 0,
+    fontFamily: 'var(--font-mono)',
   },
   cardMeta: {
     display: 'flex',
     justifyContent: 'space-between',
     gap: 12,
-    marginTop: 12,
+    marginTop: 10,
     fontSize: 11,
-    color: '#94A3B8',
+    color: 'var(--fg-3, #6B7280)',
     flexWrap: 'wrap',
   },
   pill: {
     display: 'inline-block',
     fontSize: 11,
-    fontWeight: 700,
+    fontWeight: 600,
     padding: '3px 10px',
-    borderRadius: 999,
+    borderRadius: 6,
   },
   iconBtn: {
     background: 'transparent',
-    border: '1px solid rgba(5,11,20,0.08)',
+    border: '1px solid var(--ink-200, #E5E7EB)',
     cursor: 'pointer',
     fontSize: 12,
-    padding: '8px 10px',
-    borderRadius: 999,
-    color: '#475569',
-    fontWeight: 700,
+    padding: '6px 10px',
+    borderRadius: 8,
+    color: 'var(--fg-2, #374151)',
+    fontWeight: 500,
   },
   iconBtnDanger: {
     background: 'transparent',
-    border: '1px solid rgba(153,27,27,0.12)',
+    border: '1px solid rgba(220,38,38,0.2)',
     cursor: 'pointer',
     fontSize: 12,
-    padding: '8px 10px',
-    borderRadius: 999,
-    color: '#991B1B',
-    fontWeight: 700,
+    padding: '6px 10px',
+    borderRadius: 8,
+    color: '#DC2626',
+    fontWeight: 500,
   },
   overlay: {
     position: 'fixed',
     inset: 0,
-    background: 'rgba(5,11,20,0.5)',
+    background: 'rgba(15,23,42,0.48)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -561,31 +560,33 @@ const S: Record<string, React.CSSProperties> = {
   },
   modal: {
     background: '#FFFFFF',
-    borderRadius: 24,
+    borderRadius: 20,
     width: 520,
     maxWidth: '100%',
     maxHeight: '90vh',
     overflow: 'auto',
-    boxShadow: '0 30px 70px rgba(5,11,20,0.22)',
+    boxShadow: '0 24px 48px rgba(11,15,20,.2)',
   },
   modalMobile: {
     width: '100%',
-    borderRadius: 20,
+    borderRadius: 16,
   },
   modalHead: {
     padding: '18px 22px',
-    borderBottom: '1px solid #EDF1F4',
+    borderBottom: '1px solid var(--ink-100, #F3F4F6)',
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    fontSize: 16,
+    fontSize: 15,
+    fontWeight: 600,
+    color: 'var(--fg-1, #111827)',
   },
   modalBody: {
     padding: '20px 22px',
   },
   modalFoot: {
     padding: '14px 22px',
-    borderTop: '1px solid #EDF1F4',
+    borderTop: '1px solid var(--ink-100, #F3F4F6)',
     display: 'flex',
     justifyContent: 'flex-end',
     gap: 10,
@@ -595,14 +596,14 @@ const S: Record<string, React.CSSProperties> = {
     border: 'none',
     cursor: 'pointer',
     fontSize: 20,
-    color: '#94A3B8',
+    color: 'var(--fg-3, #6B7280)',
     lineHeight: 1,
   },
   fieldLabel: {
     display: 'block',
     fontSize: 11,
-    fontWeight: 700,
-    color: '#475569',
+    fontWeight: 600,
+    color: 'var(--fg-3, #6B7280)',
     marginBottom: 6,
     textTransform: 'uppercase',
     letterSpacing: '0.08em',
@@ -610,13 +611,13 @@ const S: Record<string, React.CSSProperties> = {
   input: {
     width: '100%',
     padding: '12px 14px',
-    border: '1px solid rgba(5,11,20,0.1)',
-    borderRadius: 14,
+    border: '1px solid var(--ink-200, #E5E7EB)',
+    borderRadius: 10,
     fontSize: 13,
     outline: 'none',
     boxSizing: 'border-box',
     background: '#FFFFFF',
-    color: '#050B14',
+    color: 'var(--fg-1, #111827)',
   },
   emojiGrid: {
     display: 'flex',
@@ -626,15 +627,15 @@ const S: Record<string, React.CSSProperties> = {
   emojiBtn: {
     width: 40,
     height: 40,
-    borderRadius: 12,
-    border: '1px solid rgba(5,11,20,0.08)',
-    background: '#F8FAFB',
+    borderRadius: 10,
+    border: '1px solid var(--ink-200, #E5E7EB)',
+    background: 'var(--bg-subtle, #FAFBFC)',
     cursor: 'pointer',
     fontSize: 20,
   },
   emojiBtnActive: {
-    background: '#FBF4E4',
-    border: '2px solid #B8924F',
+    background: 'var(--brand-50, #F4F8FE)',
+    border: '2px solid var(--brand-500, #2F6FE0)',
   },
   colorRow: {
     display: 'flex',

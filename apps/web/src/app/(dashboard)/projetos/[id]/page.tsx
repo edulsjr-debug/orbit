@@ -9,6 +9,7 @@ import { projectStatus, STATUS_LABEL, STATUS_PILL_STYLE } from '@/lib/project-st
 import { useIsMobile } from '@/lib/use-mobile'
 import { TaskModal } from '@/components/TaskModal'
 import type { ProjectForModal } from '@/components/TaskModal'
+import { Progress } from '@/components/ui/Progress'
 
 type Project = {
   id: string
@@ -33,7 +34,7 @@ type Task = {
 
 const PRIORITY_LABEL: Record<Priority, string> = { low: 'Baixa', medium: 'Média', high: 'Alta' }
 const PRIORITY_COLOR: Record<Priority, string> = {
-  low: '#0F766E', medium: '#B8924F', high: '#991B1B',
+  low: '#22C55E', medium: '#F59E0B', high: '#EF4444',
 }
 const STATUS_LABEL_TASK: Record<TaskStatus, string> = {
   pending: 'Pendente', in_progress: 'Em andamento', done: 'Concluída',
@@ -128,9 +129,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
           </div>
           <div style={{ ...S.pctBig, color: project.color }}>{Math.round(progress)}%</div>
         </div>
-        <div style={S.progressTrack}>
-          <div style={{ ...S.progressFill, background: project.color, width: `${progress}%` }} />
-        </div>
+        <Progress value={progress} tone="brand" />
       </section>
 
       {/* Metrics */}
@@ -140,7 +139,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
           <div style={S.metricLbl}>Total</div>
         </div>
         <div style={S.metricCard}>
-          <div style={{ ...S.metricVal, color: '#0F766E' }}>{counts.done}</div>
+          <div style={{ ...S.metricVal, color: '#22C55E' }}>{counts.done}</div>
           <div style={S.metricLbl}>Concluídas</div>
         </div>
         <div style={S.metricCard}>
@@ -148,7 +147,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
           <div style={S.metricLbl}>Em andamento</div>
         </div>
         <div style={S.metricCard}>
-          <div style={{ ...S.metricVal, color: '#94A3B8' }}>{counts.pending}</div>
+          <div style={{ ...S.metricVal, color: 'var(--fg-3, #6B7280)' }}>{counts.pending}</div>
           <div style={S.metricLbl}>Pendentes</div>
         </div>
       </section>
@@ -235,107 +234,104 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
 }
 
 const S: Record<string, React.CSSProperties> = {
-  loading: { padding: 40, textAlign: 'center', color: '#94A3B8', fontSize: 14 },
+  loading: { padding: 40, textAlign: 'center', color: 'var(--fg-3, #6B7280)', fontSize: 14 },
   breadcrumb: {
     display: 'flex', alignItems: 'center', gap: 6,
-    fontSize: 12, color: '#94A3B8', marginBottom: 14,
+    fontSize: 12, color: 'var(--fg-3, #6B7280)', marginBottom: 14,
   },
   breadcrumbLink: {
     background: 'none', border: 'none', cursor: 'pointer',
-    color: '#64748B', fontSize: 12, padding: 0,
+    color: 'var(--fg-3, #6B7280)', fontSize: 12, padding: 0,
   },
-  breadcrumbSep: { color: '#CBD5E1' },
-  breadcrumbCurrent: { color: '#475569', fontWeight: 600 },
+  breadcrumbSep: { color: 'var(--ink-200, #E5E7EB)' },
+  breadcrumbCurrent: { color: 'var(--fg-2, #374151)', fontWeight: 600 },
   hero: {
     display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16,
-    background: '#FFFFFF', borderRadius: 24, border: '1px solid rgba(5,11,20,0.08)',
-    padding: '22px 24px', marginBottom: 14,
+    background: 'var(--bg, #FFFFFF)', borderRadius: 14, border: '1px solid var(--ink-200, #E5E7EB)',
+    boxShadow: '0 1px 2px rgba(11,15,20,0.04)', padding: '22px 24px', marginBottom: 14,
   },
   heroLeft: { display: 'flex', alignItems: 'flex-start', gap: 14, flex: 1, minWidth: 0 },
   emojiBox: {
-    width: 52, height: 52, borderRadius: 16,
+    width: 52, height: 52, borderRadius: 14,
     display: 'flex', alignItems: 'center', justifyContent: 'center',
     fontSize: 26, flexShrink: 0,
   },
-  heroName: { fontSize: 20, fontWeight: 700, color: '#050B14', letterSpacing: '-0.02em' },
-  heroDesc: { marginTop: 4, fontSize: 13, color: '#64748B', lineHeight: 1.6 },
-  heroDue: { marginTop: 4, fontSize: 11, color: '#94A3B8' },
+  heroName: { fontSize: 20, fontWeight: 700, color: 'var(--fg-1, #111827)', letterSpacing: '-0.02em' },
+  heroDesc: { marginTop: 4, fontSize: 13, color: 'var(--fg-3, #6B7280)', lineHeight: 1.6 },
+  heroDue: { marginTop: 4, fontSize: 11, color: 'var(--fg-3, #6B7280)', fontFamily: 'var(--font-mono)' },
   pill: {
     display: 'inline-block', fontSize: 11, fontWeight: 700,
-    padding: '4px 12px', borderRadius: 999, flexShrink: 0,
+    padding: '4px 12px', borderRadius: 6, flexShrink: 0,
   },
   progressSection: {
-    background: '#FFFFFF', borderRadius: 24, border: '1px solid rgba(5,11,20,0.08)',
-    padding: '18px 24px', marginBottom: 14,
+    background: 'var(--bg, #FFFFFF)', borderRadius: 14, border: '1px solid var(--ink-200, #E5E7EB)',
+    boxShadow: '0 1px 2px rgba(11,15,20,0.04)', padding: '18px 24px', marginBottom: 14,
   },
   progressHeader: {
     display: 'flex', alignItems: 'flex-start',
     justifyContent: 'space-between', marginBottom: 12,
   },
-  progressTitle: { fontSize: 14, fontWeight: 700, color: '#050B14' },
-  progressSub: { marginTop: 3, fontSize: 12, color: '#94A3B8' },
-  pctBig: { fontSize: 32, fontWeight: 800, lineHeight: 1 },
-  progressTrack: {
-    height: 8, background: '#E2E8F0', borderRadius: 999, overflow: 'hidden',
-  },
-  progressFill: { height: '100%', borderRadius: 999, transition: 'width .3s' },
+  progressTitle: { fontSize: 14, fontWeight: 700, color: 'var(--fg-1, #111827)' },
+  progressSub: { marginTop: 3, fontSize: 12, color: 'var(--fg-3, #6B7280)' },
+  pctBig: { fontSize: 32, fontWeight: 800, lineHeight: 1, fontFamily: 'var(--font-mono)', color: 'var(--brand-500, #2F6FE0)' },
   metricsRow: {
     display: 'grid', gap: 12, marginBottom: 14,
   },
   metricCard: {
-    background: '#FFFFFF', borderRadius: 20, border: '1px solid rgba(5,11,20,0.08)',
-    padding: '16px 20px',
+    background: 'var(--bg, #FFFFFF)', borderRadius: 12, border: '1px solid var(--ink-200, #E5E7EB)',
+    boxShadow: '0 1px 2px rgba(11,15,20,0.04)', padding: '16px 20px',
   },
-  metricVal: { fontSize: 28, fontWeight: 800, color: '#050B14', lineHeight: 1 },
-  metricLbl: { marginTop: 4, fontSize: 11, color: '#94A3B8', fontWeight: 600 },
+  metricVal: { fontSize: 28, fontWeight: 800, color: 'var(--fg-1, #111827)', lineHeight: 1, fontFamily: 'var(--font-mono)' },
+  metricLbl: { marginTop: 4, fontSize: 11, color: 'var(--fg-3, #6B7280)', fontWeight: 600 },
   tasksSection: {
-    background: '#FFFFFF', borderRadius: 24, border: '1px solid rgba(5,11,20,0.08)',
-    overflow: 'hidden',
+    background: 'var(--bg, #FFFFFF)', borderRadius: 14, border: '1px solid var(--ink-200, #E5E7EB)',
+    boxShadow: '0 1px 2px rgba(11,15,20,0.04)', overflow: 'hidden',
   },
   tasksPanelHead: {
-    padding: '16px 20px', borderBottom: '1px solid #EDF1F4',
+    padding: '16px 20px', borderBottom: '1px solid var(--ink-200, #E5E7EB)',
     display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap',
   },
-  panelTitle: { fontSize: 15, fontWeight: 700, color: '#050B14' },
+  panelTitle: { fontSize: 15, fontWeight: 700, color: 'var(--fg-1, #111827)' },
   tabs: { display: 'flex', gap: 6, flexWrap: 'wrap' },
   tab: {
     display: 'flex', alignItems: 'center', gap: 6,
-    padding: '6px 12px', borderRadius: 999,
-    border: '1px solid rgba(5,11,20,0.08)', background: '#F8FAFB',
-    fontSize: 12, fontWeight: 600, color: '#64748B', cursor: 'pointer',
+    padding: '6px 12px', borderRadius: 8,
+    border: '1px solid var(--ink-200, #E5E7EB)', background: 'var(--bg-subtle, #FAFBFC)',
+    fontSize: 12, fontWeight: 600, color: 'var(--fg-3, #6B7280)', cursor: 'pointer',
   },
   tabActive: {
-    background: 'rgba(5,11,20,0.06)', color: '#050B14',
-    border: '1px solid rgba(5,11,20,0.12)',
+    background: 'var(--brand-50, #F4F8FE)', color: 'var(--brand-700, #0E335A)',
+    border: '1px solid var(--brand-200, #BFDBFE)',
   },
   tabBadge: {
-    background: 'rgba(5,11,20,0.06)', borderRadius: 999,
+    background: 'var(--ink-100, #F3F4F6)', borderRadius: 6,
     padding: '1px 7px', fontSize: 10,
   },
   taskList: { display: 'grid', gap: 8, padding: 14 },
-  empty: { padding: '20px', textAlign: 'center', color: '#94A3B8', fontSize: 13 },
+  empty: { padding: '20px', textAlign: 'center', color: 'var(--fg-3, #6B7280)', fontSize: 13 },
   taskRow: {
     display: 'flex', alignItems: 'flex-start', gap: 10,
-    padding: '12px 14px', borderRadius: 16,
-    background: '#FBFCFD', border: '1px solid #EDF1F4',
+    padding: '12px 14px', borderRadius: 10,
+    background: 'var(--bg-subtle, #FAFBFC)', border: '1px solid var(--ink-200, #E5E7EB)',
   },
   checkBtn: {
     width: 28, height: 28, borderRadius: '50%',
-    border: '2px solid #CBD5E1', background: 'none', cursor: 'pointer',
+    border: '2px solid var(--ink-200, #E5E7EB)', background: 'none', cursor: 'pointer',
     fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
   },
-  checkDone: { background: '#0F766E', borderColor: '#0F766E', color: '#fff' },
-  checkProgress: { background: '#EFF6FF', borderColor: '#1D4ED8', color: '#1D4ED8' },
-  taskTitle: { fontSize: 13, fontWeight: 700, color: '#0F172A' },
+  checkDone: { background: '#22C55E', borderColor: '#22C55E', color: '#fff' },
+  checkProgress: { background: 'var(--brand-50, #F4F8FE)', borderColor: 'var(--brand-500, #2F6FE0)', color: 'var(--brand-500, #2F6FE0)' },
+  taskTitle: { fontSize: 13, fontWeight: 600, color: 'var(--fg-1, #111827)' },
   taskMeta: {
     display: 'flex', alignItems: 'center', gap: 8,
-    marginTop: 5, flexWrap: 'wrap', fontSize: 11, color: '#94A3B8',
+    marginTop: 5, flexWrap: 'wrap', fontSize: 11, color: 'var(--fg-3, #6B7280)',
+    fontFamily: 'var(--font-mono)',
   },
-  priorityPill: { padding: '3px 8px', borderRadius: 999, fontSize: 10, fontWeight: 700 },
+  priorityPill: { padding: '3px 8px', borderRadius: 6, fontSize: 10, fontWeight: 600 },
   btnNewTask: {
     padding: '6px 14px',
-    background: 'linear-gradient(135deg, #050B14 0%, #101C2B 100%)',
-    color: '#F5F2EC',
+    background: 'var(--brand-500, #2F6FE0)',
+    color: '#fff',
     border: 'none',
     borderRadius: 10,
     fontWeight: 700,
