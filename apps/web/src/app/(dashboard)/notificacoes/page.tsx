@@ -4,6 +4,7 @@ import { useState } from 'react'
 import useSWR, { mutate } from 'swr'
 import { api } from '@/lib/api'
 import { useIsMobile } from '@/lib/use-mobile'
+import { Bell } from 'lucide-react'
 
 type Notification = {
   id: string
@@ -85,14 +86,14 @@ export default function NotificacoesPage() {
 
       {notifications.length === 0 ? (
         <div style={S.emptyState}>
-          <div style={S.emptyEmoji}>🔔</div>
+          <div style={S.emptyIcon}><Bell size={40} strokeWidth={1.5} color="var(--brand-400, #5B8FEA)" /></div>
           <div style={S.emptyTitle}>Nenhuma notificação</div>
           <div style={S.emptyText}>
             Os alertas de compromissos, tarefas e projetos aparecerão aqui.
           </div>
         </div>
       ) : (
-        <div style={{ ...S.mainGrid, ...(isMobile ? S.mainGridMobile : null) }}>
+        <div style={{ ...S.mainGrid, ...(isMobile ? { gridTemplateColumns: '1fr' } : null) }}>
           <section style={S.panel}>
             <div style={S.panelHead}>
               <div>
@@ -110,7 +111,7 @@ export default function NotificacoesPage() {
                     key={n.id}
                     style={{
                       ...S.cardUnread,
-                      ...(isMobile ? S.cardUnreadMobile : null),
+                      ...(isMobile ? { flexDirection: 'column' as const } : null),
                     }}
                   >
                     <div style={S.cardSignal} />
@@ -127,7 +128,7 @@ export default function NotificacoesPage() {
                         <span>{timeAgo(n.createdAt)}</span>
                       </div>
                     </div>
-                    <button style={{ ...S.readBtn, ...(isMobile ? S.readBtnMobile : null) }} onClick={() => markRead(n.id)}>
+                    <button style={{ ...S.readBtn, ...(isMobile ? { width: '100%' } : null) }} onClick={() => markRead(n.id)}>
                       Marcar lida
                     </button>
                   </div>
@@ -198,27 +199,27 @@ const S: Record<string, React.CSSProperties> = {
     fontWeight: 700,
     letterSpacing: '0.14em',
     textTransform: 'uppercase',
-    color: '#8A6A2F',
+    color: 'var(--brand-500, #2F6FE0)',
     marginBottom: 10,
   },
   title: {
     fontSize: 'clamp(28px, 4vw, 38px)',
     fontWeight: 700,
     letterSpacing: '-0.05em',
-    color: '#050B14',
+    color: 'var(--fg-1, #111827)',
   },
   sub: {
     marginTop: 10,
     fontSize: 14,
-    color: '#64748B',
+    color: 'var(--fg-3, #6B7280)',
     lineHeight: 1.7,
   },
   btnGhost: {
-    padding: '12px 18px',
-    background: '#F4F6F8',
-    color: '#475569',
-    border: '1px solid rgba(5,11,20,0.08)',
-    borderRadius: 14,
+    padding: '10px 16px',
+    background: 'var(--bg-subtle, #FAFBFC)',
+    color: 'var(--fg-2, #374151)',
+    border: '1px solid var(--ink-200, #E5E7EB)',
+    borderRadius: 10,
     fontWeight: 600,
     fontSize: 13,
     cursor: 'pointer',
@@ -226,22 +227,29 @@ const S: Record<string, React.CSSProperties> = {
   emptyState: {
     textAlign: 'center',
     padding: '70px 24px',
-    background: '#FFFFFF',
-    borderRadius: 24,
-    border: '1px solid rgba(5,11,20,0.08)',
+    background: 'var(--bg, #FFFFFF)',
+    borderRadius: 14,
+    border: '1px solid var(--ink-200, #E5E7EB)',
+    boxShadow: '0 1px 2px rgba(11,15,20,0.04)',
   },
-  emptyEmoji: {
-    fontSize: 48,
-    marginBottom: 14,
+  emptyIcon: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 72,
+    height: 72,
+    borderRadius: '50%',
+    background: 'var(--brand-50, #F4F8FE)',
+    margin: '0 auto 16px',
   },
   emptyTitle: {
     fontWeight: 700,
     fontSize: 18,
-    color: '#050B14',
+    color: 'var(--fg-1, #111827)',
     marginBottom: 8,
   },
   emptyText: {
-    color: '#94A3B8',
+    color: 'var(--fg-3, #6B7280)',
     fontSize: 14,
     lineHeight: 1.7,
   },
@@ -250,37 +258,35 @@ const S: Record<string, React.CSSProperties> = {
     gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
     gap: 16,
   },
-  mainGridMobile: {
-    gridTemplateColumns: '1fr',
-  },
   panel: {
-    background: '#FFFFFF',
-    borderRadius: 24,
-    border: '1px solid rgba(5,11,20,0.08)',
+    background: 'var(--bg, #FFFFFF)',
+    borderRadius: 14,
+    border: '1px solid var(--ink-200, #E5E7EB)',
+    boxShadow: '0 1px 2px rgba(11,15,20,0.04)',
     overflow: 'hidden',
   },
   panelHead: {
     padding: '18px 20px',
-    borderBottom: '1px solid #EDF1F4',
+    borderBottom: '1px solid var(--ink-200, #E5E7EB)',
   },
   panelTitle: {
     fontSize: 15,
     fontWeight: 700,
-    color: '#050B14',
+    color: 'var(--fg-1, #111827)',
   },
   panelSub: {
     marginTop: 4,
     fontSize: 12,
-    color: '#64748B',
+    color: 'var(--fg-3, #6B7280)',
   },
   list: {
     display: 'grid',
-    gap: 12,
+    gap: 10,
     padding: 14,
   },
   emptyInline: {
     padding: '16px 8px',
-    color: '#94A3B8',
+    color: 'var(--fg-3, #6B7280)',
     fontSize: 13,
     lineHeight: 1.7,
   },
@@ -289,11 +295,11 @@ const S: Record<string, React.CSSProperties> = {
     width: '100%',
     padding: '12px',
     background: 'transparent',
-    border: '1px dashed rgba(5,11,20,0.12)',
-    borderRadius: 14,
+    border: '1px dashed var(--ink-200, #E5E7EB)',
+    borderRadius: 10,
     fontSize: 12,
     fontWeight: 600,
-    color: '#64748B',
+    color: 'var(--fg-3, #6B7280)',
     cursor: 'pointer',
     margin: '8px 0 4px',
   },
@@ -301,41 +307,38 @@ const S: Record<string, React.CSSProperties> = {
     display: 'flex',
     alignItems: 'flex-start',
     gap: 12,
-    background: '#FBFCFD',
-    border: '1px solid rgba(184,146,79,0.16)',
-    borderRadius: 18,
-    padding: '16px 16px',
-  },
-  cardUnreadMobile: {
-    flexDirection: 'column',
+    background: 'var(--brand-50, #F4F8FE)',
+    border: '1px solid var(--brand-200, #BFDBFE)',
+    borderRadius: 10,
+    padding: '14px 16px',
   },
   cardRead: {
     display: 'flex',
     alignItems: 'flex-start',
     gap: 12,
-    background: '#FBFCFD',
-    border: '1px solid #EDF1F4',
-    borderRadius: 18,
-    padding: '16px 16px',
+    background: 'var(--bg-subtle, #FAFBFC)',
+    border: '1px solid var(--ink-200, #E5E7EB)',
+    borderRadius: 10,
+    padding: '14px 16px',
     opacity: 0.72,
   },
   cardSignal: {
-    width: 10,
-    height: 10,
+    width: 8,
+    height: 8,
     borderRadius: '50%',
-    background: '#B8924F',
+    background: 'var(--brand-500, #2F6FE0)',
     marginTop: 7,
     flexShrink: 0,
   },
   cardTitle: {
     fontSize: 14,
-    fontWeight: 700,
-    color: '#050B14',
+    fontWeight: 600,
+    color: 'var(--fg-1, #111827)',
     marginBottom: 4,
   },
   cardBody: {
     fontSize: 13,
-    color: '#475569',
+    color: 'var(--fg-2, #374151)',
     marginBottom: 10,
     lineHeight: 1.6,
   },
@@ -344,42 +347,43 @@ const S: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     gap: 8,
     fontSize: 11,
-    color: '#64748B',
+    color: 'var(--fg-3, #6B7280)',
     flexWrap: 'wrap',
+    fontFamily: 'var(--font-mono)',
   },
   metaPill: {
-    background: '#F4F6F8',
-    color: '#475569',
-    padding: '4px 8px',
-    borderRadius: 999,
-    fontWeight: 700,
+    background: 'var(--ink-100, #F3F4F6)',
+    color: 'var(--fg-2, #374151)',
+    padding: '3px 8px',
+    borderRadius: 6,
+    fontWeight: 600,
+    fontFamily: 'inherit',
   },
   entityTag: {
-    background: '#FBF4E4',
-    color: '#8A6A2F',
-    padding: '4px 8px',
-    borderRadius: 999,
-    fontWeight: 700,
+    background: 'var(--brand-50, #F4F8FE)',
+    color: 'var(--brand-700, #0E335A)',
+    padding: '3px 8px',
+    borderRadius: 6,
+    fontWeight: 600,
+    fontFamily: 'inherit',
   },
   entityTagMuted: {
-    background: '#F1F5F9',
-    color: '#64748B',
-    padding: '4px 8px',
-    borderRadius: 999,
-    fontWeight: 700,
+    background: 'var(--ink-100, #F3F4F6)',
+    color: 'var(--fg-3, #6B7280)',
+    padding: '3px 8px',
+    borderRadius: 6,
+    fontWeight: 600,
+    fontFamily: 'inherit',
   },
   readBtn: {
-    background: '#F0FDF4',
-    border: '1px solid rgba(15,118,110,0.2)',
-    borderRadius: 999,
-    padding: '9px 12px',
-    color: '#0F766E',
+    background: 'rgba(34,197,94,0.08)',
+    border: '1px solid rgba(34,197,94,0.2)',
+    borderRadius: 8,
+    padding: '7px 12px',
+    color: '#16A34A',
     cursor: 'pointer',
     fontSize: 12,
-    fontWeight: 700,
+    fontWeight: 600,
     flexShrink: 0,
-  },
-  readBtnMobile: {
-    width: '100%',
   },
 }

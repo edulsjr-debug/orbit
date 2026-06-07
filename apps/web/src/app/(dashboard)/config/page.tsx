@@ -20,7 +20,7 @@ function PrumoMark() {
   return (
     <svg viewBox="0 0 28 56" width="8" height="16" fill="none" aria-hidden="true">
       <rect x="6" y="4" width="4" height="48" fill="#050B14" />
-      <rect x="10" y="4" width="12" height="16" fill="#B8924F" />
+      <rect x="10" y="4" width="12" height="16" fill="#2F6FE0" />
     </svg>
   )
 }
@@ -200,7 +200,7 @@ export default function ConfigPage() {
         </div>
       </section>
 
-      <div style={{ ...S.grid, ...(isMobile ? S.gridMobile : null) }}>
+      <div style={{ ...S.grid, ...(isMobile ? { gridTemplateColumns: '1fr' } : null) }}>
         <section style={S.card}>
           <div style={S.cardHead}>
             <div>
@@ -230,7 +230,7 @@ export default function ConfigPage() {
           </Field>
           <Field label="E-mail">
             <input
-              style={{ ...S.input, background: '#F8FAFB', color: '#94A3B8' }}
+              style={{ ...S.input, background: 'var(--bg-subtle, #FAFBFC)', color: 'var(--fg-3, #6B7280)' }}
               value={user?.email ?? ''}
               disabled
             />
@@ -240,8 +240,8 @@ export default function ConfigPage() {
             <div
               style={{
                 ...S.msg,
-                color: profileMsg.ok ? '#0F766E' : '#991B1B',
-                background: profileMsg.ok ? '#F0FDF4' : '#FEF2F2',
+                color: profileMsg.ok ? '#16A34A' : '#DC2626',
+                background: profileMsg.ok ? 'rgba(34,197,94,.08)' : 'rgba(220,38,38,.08)',
               }}
             >
               {profileMsg.text}
@@ -270,8 +270,8 @@ export default function ConfigPage() {
             <div
               style={{
                 ...S.msg,
-                color: pushMsg.ok ? '#0F766E' : '#991B1B',
-                background: pushMsg.ok ? '#F0FDF4' : '#FEF2F2',
+                color: pushMsg.ok ? '#16A34A' : '#DC2626',
+                background: pushMsg.ok ? 'rgba(34,197,94,.08)' : 'rgba(220,38,38,.08)',
               }}
             >
               {pushMsg.text}
@@ -342,8 +342,8 @@ export default function ConfigPage() {
             <div
               style={{
                 ...S.msg,
-                color: pwMsg.ok ? '#0F766E' : '#991B1B',
-                background: pwMsg.ok ? '#F0FDF4' : '#FEF2F2',
+                color: pwMsg.ok ? '#16A34A' : '#DC2626',
+                background: pwMsg.ok ? 'rgba(34,197,94,.08)' : 'rgba(220,38,38,.08)',
               }}
             >
               {pwMsg.text}
@@ -387,30 +387,30 @@ const S: Record<string, React.CSSProperties> = {
     fontWeight: 700,
     letterSpacing: '0.14em',
     textTransform: 'uppercase',
-    color: '#8A6A2F',
+    color: 'var(--brand-500, #2F6FE0)',
     marginBottom: 10,
   },
   title: {
     fontSize: 'clamp(28px, 4vw, 38px)',
     fontWeight: 700,
     letterSpacing: '-0.05em',
-    color: '#050B14',
+    color: 'var(--fg-1, #111827)',
   },
   sub: {
     marginTop: 10,
     fontSize: 14,
-    color: '#64748B',
+    color: 'var(--fg-3, #6B7280)',
     lineHeight: 1.7,
   },
   endorsement: {
     display: 'inline-flex',
     alignItems: 'center',
     gap: 10,
-    padding: '12px 14px',
-    borderRadius: 999,
-    background: '#FFFFFF',
-    border: '1px solid rgba(5,11,20,0.08)',
-    color: '#64748B',
+    padding: '10px 14px',
+    borderRadius: 10,
+    background: 'var(--bg, #FFFFFF)',
+    border: '1px solid var(--ink-200, #E5E7EB)',
+    color: 'var(--fg-3, #6B7280)',
     fontSize: 12,
     fontWeight: 600,
   },
@@ -418,7 +418,7 @@ const S: Record<string, React.CSSProperties> = {
     display: 'inline-flex',
     alignItems: 'center',
     gap: 8,
-    color: '#050B14',
+    color: 'var(--fg-1, #111827)',
     fontWeight: 700,
   },
   grid: {
@@ -426,29 +426,27 @@ const S: Record<string, React.CSSProperties> = {
     gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
     gap: 16,
   },
-  gridMobile: {
-    gridTemplateColumns: '1fr',
-  },
   card: {
-    background: '#FFFFFF',
-    border: '1px solid rgba(5,11,20,0.08)',
-    borderRadius: 24,
+    background: 'var(--bg, #FFFFFF)',
+    border: '1px solid var(--ink-200, #E5E7EB)',
+    boxShadow: '0 1px 2px rgba(11,15,20,0.04)',
+    borderRadius: 14,
     padding: '20px 22px',
   },
   cardHead: {
     marginBottom: 18,
     paddingBottom: 14,
-    borderBottom: '1px solid #EDF1F4',
+    borderBottom: '1px solid var(--ink-200, #E5E7EB)',
   },
   cardTitle: {
     fontSize: 15,
     fontWeight: 700,
-    color: '#050B14',
+    color: 'var(--fg-1, #111827)',
   },
   cardSub: {
     marginTop: 4,
     fontSize: 12,
-    color: '#64748B',
+    color: 'var(--fg-3, #6B7280)',
   },
   avatarRow: {
     display: 'flex',
@@ -456,68 +454,68 @@ const S: Record<string, React.CSSProperties> = {
     gap: 14,
     marginBottom: 20,
     padding: '14px 16px',
-    background: '#F8FAFB',
-    borderRadius: 18,
-    border: '1px solid #EDF1F4',
+    background: 'var(--bg-subtle, #FAFBFC)',
+    borderRadius: 10,
+    border: '1px solid var(--ink-200, #E5E7EB)',
   },
   avatar: {
     width: 52,
     height: 52,
-    borderRadius: 16,
-    background: 'linear-gradient(135deg, #B8924F 0%, #D4B170 100%)',
+    borderRadius: 14,
+    background: 'var(--brand-500, #2F6FE0)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    color: '#050B14',
+    color: '#fff',
     fontWeight: 800,
     fontSize: 20,
   },
   profileName: {
     fontWeight: 700,
     fontSize: 16,
-    color: '#050B14',
+    color: 'var(--fg-1, #111827)',
   },
   profileEmail: {
     fontSize: 13,
-    color: '#64748B',
+    color: 'var(--fg-3, #6B7280)',
     marginTop: 4,
   },
   fieldLabel: {
     display: 'block',
     fontSize: 11,
     fontWeight: 700,
-    color: '#475569',
+    color: 'var(--fg-3, #6B7280)',
     marginBottom: 6,
     textTransform: 'uppercase',
     letterSpacing: '0.08em',
   },
   input: {
     width: '100%',
-    padding: '12px 14px',
-    border: '1px solid rgba(5,11,20,0.1)',
-    borderRadius: 14,
+    padding: '11px 14px',
+    border: '1px solid var(--ink-200, #E5E7EB)',
+    borderRadius: 10,
     fontSize: 13,
     outline: 'none',
     boxSizing: 'border-box',
-    background: '#FFFFFF',
-    color: '#050B14',
+    background: 'var(--bg, #FFFFFF)',
+    color: 'var(--fg-1, #111827)',
   },
   btnPrimary: {
-    padding: '12px 18px',
-    background: 'linear-gradient(135deg, #050B14 0%, #101C2B 100%)',
-    color: '#F5F2EC',
+    padding: '10px 18px',
+    background: 'var(--brand-500, #2F6FE0)',
+    color: '#fff',
     border: 'none',
-    borderRadius: 14,
+    borderRadius: 10,
     fontWeight: 700,
     fontSize: 13,
     cursor: 'pointer',
   },
   btnGhost: {
-    padding: '12px 18px',
-    background: '#F4F6F8',
-    color: '#475569',
-    border: '1px solid rgba(5,11,20,0.08)',
-    borderRadius: 14,
+    padding: '10px 18px',
+    background: 'var(--bg-subtle, #FAFBFC)',
+    color: 'var(--fg-2, #374151)',
+    border: '1px solid var(--ink-200, #E5E7EB)',
+    borderRadius: 10,
     fontWeight: 600,
     fontSize: 13,
     cursor: 'pointer',
@@ -533,63 +531,32 @@ const S: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     marginBottom: 16,
     padding: '12px 14px',
-    background: '#F8FAFB',
-    borderRadius: 16,
-    border: '1px solid #EDF1F4',
+    background: 'var(--bg-subtle, #FAFBFC)',
+    borderRadius: 10,
+    border: '1px solid var(--ink-200, #E5E7EB)',
   },
   statusLabel: {
     fontSize: 12,
-    color: '#64748B',
+    color: 'var(--fg-3, #6B7280)',
     textTransform: 'uppercase',
     letterSpacing: '0.08em',
     fontWeight: 700,
   },
   statusValue: {
     fontSize: 13,
-    color: '#050B14',
+    color: 'var(--fg-1, #111827)',
     fontWeight: 700,
   },
   helpText: {
     marginTop: 12,
     fontSize: 12,
-    color: '#991B1B',
+    color: '#DC2626',
     lineHeight: 1.6,
   },
   msg: {
-    padding: '12px 14px',
-    borderRadius: 14,
+    padding: '10px 14px',
+    borderRadius: 10,
     fontSize: 13,
     marginBottom: 14,
-  },
-  infoRow: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: '12px 0',
-    borderBottom: '1px solid #F3F5F7',
-    gap: 12,
-  },
-  infoLabel: {
-    color: '#64748B',
-    fontSize: 13,
-  },
-  infoValue: {
-    fontWeight: 700,
-    fontSize: 13,
-    color: '#050B14',
-  },
-  serverValue: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 8,
-    fontSize: 13,
-    fontWeight: 700,
-    color: '#050B14',
-  },
-  serverDot: {
-    width: 9,
-    height: 9,
-    borderRadius: '50%',
-    flexShrink: 0,
   },
 }
