@@ -3,6 +3,7 @@
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import useSWR, { mutate } from 'swr'
+import posthog from 'posthog-js'
 import { api } from '@/lib/api'
 
 type User = { id: string; name: string; email: string }
@@ -119,6 +120,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }, [pathname, isMobile])
 
   const { data: user } = useSWR<User>('/auth/me', fetcher)
+
+  useEffect(() => {
+    if (!user) return
+    posthog.identify(user.id, { email: user.email, name: user.name })
+  }, [user])
   const { data: countData } = useSWR('/notifications/unread-count', fetcher, {
     refreshInterval: 30000,
   })
