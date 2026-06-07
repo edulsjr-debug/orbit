@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import useSWR from 'swr'
 import { api } from '@/lib/api'
 import { useIsMobile } from '@/lib/use-mobile'
+import { MapPin, Monitor, Bell, Mail, MessageSquare, Pencil } from 'lucide-react'
 
 type ViewMode = 'mes' | 'lista' | 'kanban'
 type HistoryTab = 'details' | 'history'
@@ -50,11 +51,11 @@ type EventFormState = {
 const fetcher = (url: string) => api.get<any>(url).then((r: any) => r.data)
 
 const CATEGORY_COLORS: Record<EventItem['category'], string> = {
-  trabalho: '#B8924F',
-  cliente: '#1D4ED8',
-  pessoal: '#0F766E',
-  juridico: '#991B1B',
-  gestao: '#7C3AED',
+  trabalho: '#2F6FE0',
+  cliente: '#7C3AED',
+  pessoal: '#22C55E',
+  juridico: '#EF4444',
+  gestao: '#F59E0B',
 }
 
 const CATEGORY_LABELS: Record<EventItem['category'], string> = {
@@ -66,11 +67,11 @@ const CATEGORY_LABELS: Record<EventItem['category'], string> = {
 }
 
 const CATEGORY_BADGE_BG: Record<string, string> = {
-  '#B8924F': '#fbf4e4',
-  '#1D4ED8': '#eff6ff',
-  '#0F766E': '#f0fdfa',
-  '#991B1B': '#fff1f2',
-  '#7C3AED': '#f5f3ff',
+  '#2F6FE0': '#F4F8FE',
+  '#7C3AED': '#F5F3FF',
+  '#22C55E': '#F0FDF4',
+  '#EF4444': '#FEF2F2',
+  '#F59E0B': '#FFFBEB',
 }
 
 const WEEK_LABELS = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom']
@@ -390,16 +391,16 @@ export default function CompromissosPage() {
 
   function formatFieldLabel(field: string): string {
     const labels: Record<string, string> = {
-      title: '📝 Título',
-      location: '📍 Local',
-      startAt: '📅 Data e hora',
-      durationMinutes: '⏱ Duração',
-      category: '🏷 Categoria',
-      notifInApp: '🖥️ Notif. na tela',
-      notifPush: '🔔 Notif. push',
-      notifEmail: '📧 Notif. email',
-      notifWhatsapp: '💬 Notif. WhatsApp',
-      notifAdvance: '⏰ Antecedência',
+      title: 'Título',
+      location: 'Local',
+      startAt: 'Data e hora',
+      durationMinutes: 'Duração',
+      category: 'Categoria',
+      notifInApp: 'Notif. na tela',
+      notifPush: 'Notif. push',
+      notifEmail: 'Notif. email',
+      notifWhatsapp: 'Notif. WhatsApp',
+      notifAdvance: 'Antecedência',
     }
     return labels[field] ?? field
   }
@@ -581,28 +582,28 @@ export default function CompromissosPage() {
                         alignItems: 'center',
                         width: '100%',
                         textAlign: 'left',
-                        background: '#fafafa',
-                        border: 'none',
+                        background: 'var(--bg-subtle, #FAFBFC)',
+                        border: '1px solid var(--ink-100, #F3F4F6)',
                         borderLeft: `3px solid ${color}`,
-                        borderRadius: 8,
+                        borderRadius: 10,
                         padding: '10px 12px',
                         marginBottom: 8,
                         cursor: 'pointer',
                       }}
-                      onMouseOver={(e) => { (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 2px 8px rgba(0,0,0,.12)' }}
+                      onMouseOver={(e) => { (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 2px 6px rgba(11,15,20,.08)' }}
                       onMouseOut={(e) => { (e.currentTarget as HTMLButtonElement).style.boxShadow = 'none' }}
                     >
                       <div>
-                        <div style={{ fontWeight: 600, color: '#1e293b', fontSize: 13 }}>{event.title}</div>
+                        <div style={{ fontWeight: 600, color: 'var(--fg-1, #111827)', fontSize: 13 }}>{event.title}</div>
                         {event.location && (
-                          <div style={{ color: '#64748b', fontSize: 12, marginTop: 2 }}>📍 {event.location}</div>
+                          <div style={{ color: 'var(--fg-3, #6B7280)', fontSize: 12, marginTop: 2, display: 'flex', alignItems: 'center', gap: 4 }}><MapPin size={11} strokeWidth={1.75} />{event.location}</div>
                         )}
                       </div>
                       <div style={{ textAlign: 'right', flexShrink: 0, marginLeft: 12 }}>
-                        <div style={{ fontSize: 11, fontWeight: 700, color, background: CATEGORY_BADGE_BG[color] ?? '#f1f5f9', borderRadius: 4, padding: '2px 6px', display: 'inline-block' }}>
+                        <div style={{ fontSize: 11, fontWeight: 600, color, background: CATEGORY_BADGE_BG[color] ?? 'var(--bg-subtle, #FAFBFC)', borderRadius: 6, padding: '2px 6px', display: 'inline-block' }}>
                           {badge}
                         </div>
-                        <div style={{ fontSize: 12, color: '#64748b', marginTop: 3 }}>
+                        <div style={{ fontSize: 12, color: 'var(--fg-3, #6B7280)', marginTop: 3, fontFamily: 'var(--font-mono)' }}>
                           {eventDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                         </div>
                       </div>
@@ -710,9 +711,9 @@ export default function CompromissosPage() {
 
             {modalTab === 'transferir' ? (
               <div style={S.modalBody}>
-                <div style={{ background: '#f8fafc', borderRadius: 8, padding: '10px 12px', border: '1px solid #e2e8f0', marginBottom: 12 }}>
-                  <div style={{ fontSize: 11, color: '#94a3b8', marginBottom: 2 }}>Data atual</div>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: '#64748b', textDecoration: 'line-through' }}>
+                <div style={{ background: 'var(--bg-subtle, #FAFBFC)', borderRadius: 10, padding: '10px 12px', border: '1px solid var(--ink-100, #F3F4F6)', marginBottom: 12 }}>
+                  <div style={{ fontSize: 11, color: 'var(--fg-3, #6B7280)', marginBottom: 2 }}>Data atual</div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--fg-3, #6B7280)', textDecoration: 'line-through', fontFamily: 'var(--font-mono)' }}>
                     {editingEvent ? new Date(editingEvent.startAt).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : ''}
                   </div>
                 </div>
@@ -785,21 +786,21 @@ export default function CompromissosPage() {
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                     {groupHistoryItems(history as EventHistoryItem[]).map((group, gi) => (
-                      <div key={gi} style={{ border: '1px solid #e2e8f0', borderRadius: 10, overflow: 'hidden' }}>
-                        <div style={{ background: '#f8fafc', padding: '10px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e2e8f0' }}>
+                      <div key={gi} style={{ border: '1px solid var(--ink-100, #F3F4F6)', borderRadius: 10, overflow: 'hidden' }}>
+                        <div style={{ background: 'var(--bg-subtle, #FAFBFC)', padding: '10px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--ink-100, #F3F4F6)' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                            <div style={{ width: 24, height: 24, borderRadius: '50%', background: '#fffbeb', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13 }}>✏️</div>
-                            <span style={{ fontWeight: 600, color: '#1e293b', fontSize: 13 }}>Editado</span>
+                            <div style={{ width: 24, height: 24, borderRadius: '50%', background: 'var(--brand-50, #F4F8FE)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Pencil size={13} strokeWidth={1.75} color="var(--brand-500, #2F6FE0)" /></div>
+                            <span style={{ fontWeight: 600, color: 'var(--fg-1, #111827)', fontSize: 13 }}>Editado</span>
                           </div>
-                          <span style={{ fontSize: 11, color: '#94a3b8' }}>{formatRelativeTime(group.timestamp)}</span>
+                          <span style={{ fontSize: 11, color: 'var(--fg-3, #6B7280)' }}>{formatRelativeTime(group.timestamp)}</span>
                         </div>
                         <div style={{ padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
                           {group.items.map((item) => (
                             <div key={item.id} style={{ display: 'flex', alignItems: 'baseline', gap: 6, fontSize: 12, flexWrap: 'wrap' }}>
-                              <span style={{ color: '#64748b', minWidth: 100, fontWeight: 500, flexShrink: 0 }}>{formatFieldLabel(item.field)}</span>
-                              <span style={{ color: '#94a3b8', textDecoration: 'line-through' }}>{formatFieldValue(item.field, item.oldValue)}</span>
-                              <span style={{ color: '#94a3b8' }}>→</span>
-                              <span style={{ color: '#1e293b', fontWeight: 600 }}>{formatFieldValue(item.field, item.newValue)}</span>
+                              <span style={{ color: 'var(--fg-3, #6B7280)', minWidth: 100, fontWeight: 500, flexShrink: 0 }}>{formatFieldLabel(item.field)}</span>
+                              <span style={{ color: 'var(--fg-3, #6B7280)', textDecoration: 'line-through' }}>{formatFieldValue(item.field, item.oldValue)}</span>
+                              <span style={{ color: 'var(--fg-3, #6B7280)' }}>→</span>
+                              <span style={{ color: 'var(--fg-1, #111827)', fontWeight: 600 }}>{formatFieldValue(item.field, item.newValue)}</span>
                             </div>
                           ))}
                         </div>
@@ -862,13 +863,13 @@ function EventCard({ event, onClick }: { event: EventItem; onClick: () => void }
         <div style={S.eventSub}>{event.location || 'Sem local definido'}</div>
         <div style={S.eventMetaRow}>
           <span style={S.metaPill}>{CATEGORY_LABELS[event.category]}</span>
-          {event.hasHistory ? <span style={S.editedPill}>✏</span> : null}
+          {event.hasHistory ? <span style={S.editedPill}>Editado</span> : null}
         </div>
         <div style={S.notificationRow}>
-          {event.notifInApp ? <span>🖥️</span> : null}
-          {event.notifPush ? <span>🔔</span> : null}
-          {event.notifEmail ? <span>✉️</span> : null}
-          {event.notifWhatsapp ? <span>💬</span> : null}
+          {event.notifInApp ? <Monitor size={13} strokeWidth={1.75} color="var(--fg-3, #6B7280)" /> : null}
+          {event.notifPush ? <Bell size={13} strokeWidth={1.75} color="var(--fg-3, #6B7280)" /> : null}
+          {event.notifEmail ? <Mail size={13} strokeWidth={1.75} color="var(--fg-3, #6B7280)" /> : null}
+          {event.notifWhatsapp ? <MessageSquare size={13} strokeWidth={1.75} color="var(--fg-3, #6B7280)" /> : null}
         </div>
       </div>
     </button>
@@ -897,11 +898,11 @@ function AgendaTimelineCard({ event, onClick }: { event: EventItem; onClick: () 
         <div style={S.eventSub}>{event.location || 'Sem local definido'}</div>
         {event.description ? <div style={S.agendaTimelineDescription}>{event.description}</div> : null}
         <div style={S.notificationRow}>
-          {event.notifInApp ? <span>🖥️</span> : null}
-          {event.notifPush ? <span>🔔</span> : null}
-          {event.notifEmail ? <span>✉️</span> : null}
-          {event.notifWhatsapp ? <span>💬</span> : null}
-          {event.hasHistory ? <span style={S.editedPill}>✏</span> : null}
+          {event.notifInApp ? <Monitor size={13} strokeWidth={1.75} color="var(--fg-3, #6B7280)" /> : null}
+          {event.notifPush ? <Bell size={13} strokeWidth={1.75} color="var(--fg-3, #6B7280)" /> : null}
+          {event.notifEmail ? <Mail size={13} strokeWidth={1.75} color="var(--fg-3, #6B7280)" /> : null}
+          {event.notifWhatsapp ? <MessageSquare size={13} strokeWidth={1.75} color="var(--fg-3, #6B7280)" /> : null}
+          {event.hasHistory ? <span style={S.editedPill}>Editado</span> : null}
         </div>
       </div>
     </button>
@@ -913,8 +914,8 @@ function CompactEventRow({ event, onClick }: { event: EventItem; onClick: () => 
     <button type="button" onClick={onClick} style={{ ...S.compactRow, ...(event.hasHistory ? S.eventCardHistory : null) }}>
       <div style={S.compactTime}>{new Date(event.startAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</div>
       <div style={{ ...S.eventBar, background: CATEGORY_COLORS[event.category], height: 20 }} />
-      <div style={{ flex: 1, textAlign: 'left', fontWeight: 600, color: '#0f172a' }}>{event.title}</div>
-      {event.hasHistory ? <span style={S.editedPill}>✏</span> : null}
+      <div style={{ flex: 1, textAlign: 'left', fontWeight: 600, color: 'var(--fg-1, #111827)' }}>{event.title}</div>
+      {event.hasHistory ? <span style={S.editedPill}>Editado</span> : null}
     </button>
   )
 }
@@ -922,108 +923,108 @@ function CompactEventRow({ event, onClick }: { event: EventItem; onClick: () => 
 const S: Record<string, React.CSSProperties> = {
   fadeIn: { animation: 'orbitFadeIn .2s ease-out' },
   pageHeader: { display: 'flex', justifyContent: 'space-between', gap: 16, alignItems: 'flex-start', marginBottom: 18, flexWrap: 'wrap' },
-  pageTitle: { fontSize: 28, fontWeight: 800, letterSpacing: '-0.04em', color: '#050b14' },
-  pageSub: { marginTop: 2, fontSize: 13, color: '#64748b' },
+  pageTitle: { fontSize: 26, fontWeight: 700, letterSpacing: '-0.03em', color: 'var(--fg-1, #111827)' },
+  pageSub: { marginTop: 2, fontSize: 13, color: 'var(--fg-3, #6B7280)' },
   headerControls: { display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' },
-  switcherWrap: { display: 'flex', gap: 4, background: '#f4f6f8', padding: 4, borderRadius: 14, border: '1px solid rgba(5,11,20,0.08)' },
-  switcherBtn: { border: 'none', background: 'transparent', padding: '7px 14px', borderRadius: 7, fontSize: 13, fontWeight: 600, color: '#64748b', cursor: 'pointer' },
-  switcherBtnActive: { background: '#fff', color: '#0f172a', boxShadow: '0 6px 16px rgba(5,11,20,.08)' },
-  primaryButton: { border: 'none', background: 'linear-gradient(135deg, #050B14 0%, #101C2B 100%)', color: '#fff', borderRadius: 14, padding: '10px 16px', fontSize: 13, fontWeight: 700, cursor: 'pointer' },
-  secondaryButton: { border: '1px solid rgba(5,11,20,0.08)', background: '#fff', color: '#374151', borderRadius: 14, padding: '10px 14px', fontSize: 13, fontWeight: 600, cursor: 'pointer' },
-  deleteButton: { border: '1px solid rgba(153,27,27,0.14)', background: '#fff1f2', color: '#991b1b', borderRadius: 14, padding: '10px 14px', fontSize: 13, fontWeight: 700, cursor: 'pointer' },
-  iconButton: { width: 38, height: 38, border: '1px solid rgba(5,11,20,0.08)', background: '#fff', borderRadius: 12, fontSize: 18, cursor: 'pointer' },
+  switcherWrap: { display: 'flex', gap: 4, background: 'var(--bg-subtle, #FAFBFC)', padding: 4, borderRadius: 12, border: '1px solid var(--ink-200, #E5E7EB)' },
+  switcherBtn: { border: 'none', background: 'transparent', padding: '7px 14px', borderRadius: 8, fontSize: 13, fontWeight: 500, color: 'var(--fg-3, #6B7280)', cursor: 'pointer' },
+  switcherBtnActive: { background: '#fff', color: 'var(--fg-1, #111827)', boxShadow: '0 1px 4px rgba(11,15,20,.08)' },
+  primaryButton: { border: 'none', background: 'var(--brand-500, #2F6FE0)', color: '#fff', borderRadius: 10, padding: '10px 16px', fontSize: 13, fontWeight: 600, cursor: 'pointer' },
+  secondaryButton: { border: '1px solid var(--ink-200, #E5E7EB)', background: '#fff', color: 'var(--fg-2, #374151)', borderRadius: 10, padding: '10px 14px', fontSize: 13, fontWeight: 500, cursor: 'pointer' },
+  deleteButton: { border: '1px solid rgba(220,38,38,0.2)', background: '#FEF2F2', color: '#DC2626', borderRadius: 10, padding: '10px 14px', fontSize: 13, fontWeight: 600, cursor: 'pointer' },
+  iconButton: { width: 34, height: 34, border: '1px solid var(--ink-200, #E5E7EB)', background: '#fff', borderRadius: 8, fontSize: 16, cursor: 'pointer', color: 'var(--fg-2, #374151)' },
   monthLayout: { display: 'grid', gridTemplateColumns: 'minmax(350px, 0.88fr) minmax(560px, 1.32fr)', gap: 16, alignItems: 'stretch' },
   monthLayoutMobile: { gridTemplateColumns: '1fr' },
-  calendarCard: { background: '#fff', borderRadius: 24, border: '1px solid rgba(5,11,20,0.08)', overflow: 'hidden', minHeight: 100 },
+  calendarCard: { background: '#fff', borderRadius: 14, border: '1px solid var(--ink-200, #E5E7EB)', overflow: 'hidden', minHeight: 100, boxShadow: '0 1px 2px rgba(11,15,20,0.04)' },
   calendarCardMobile: { overflowX: 'auto' },
-  calendarNav: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', borderBottom: '1px solid #edf1f4' },
-  calendarTitle: { fontSize: 15, fontWeight: 800, textTransform: 'capitalize' },
+  calendarNav: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', borderBottom: '1px solid var(--ink-100, #F3F4F6)' },
+  calendarTitle: { fontSize: 14, fontWeight: 600, textTransform: 'capitalize', color: 'var(--fg-1, #111827)' },
   weekHeader: { display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)' },
   weekHeaderMobile: { minWidth: 560 },
-  weekHeaderCell: { textAlign: 'center', padding: '8px 6px', fontSize: 10, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', borderBottom: '1px solid #f8fafc' },
+  weekHeaderCell: { textAlign: 'center', padding: '8px 6px', fontSize: 10, fontWeight: 600, color: 'var(--fg-3, #6B7280)', textTransform: 'uppercase', borderBottom: '1px solid var(--ink-100, #F3F4F6)' },
   calendarGrid: { display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)' },
   calendarGridMobile: { minWidth: 560 },
-  dayCell: { minHeight: 64, border: 'none', borderTop: '1px solid #f8fafc', borderRight: '1px solid #f8fafc', background: '#fff', padding: 6, cursor: 'pointer' },
-  dayCellMuted: { background: '#fcfcfd', color: '#cbd5e1' },
-  dayCellSelected: { background: '#f7efe0', boxShadow: 'inset 0 0 0 1px rgba(184,146,79,0.18)' },
-  dayNumber: { width: 26, height: 26, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto', fontSize: 12, fontWeight: 700, color: '#0f172a' },
-  dayNumberToday: { background: '#050b14', color: '#fff' },
+  dayCell: { minHeight: 64, border: 'none', borderTop: '1px solid var(--ink-50, #F9FAFB)', borderRight: '1px solid var(--ink-50, #F9FAFB)', background: '#fff', padding: 6, cursor: 'pointer' },
+  dayCellMuted: { background: 'var(--bg-subtle, #FAFBFC)', color: 'var(--ink-200, #E5E7EB)' },
+  dayCellSelected: { background: 'var(--brand-50, #F4F8FE)', boxShadow: 'inset 0 0 0 1px var(--brand-300, #93C5FD)' },
+  dayNumber: { width: 26, height: 26, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto', fontSize: 12, fontWeight: 600, color: 'var(--fg-1, #111827)' },
+  dayNumberToday: { background: 'var(--brand-500, #2F6FE0)', color: '#fff' },
   dayDots: { display: 'flex', justifyContent: 'center', gap: 4, marginTop: 4 },
   dot: { width: 5, height: 5, borderRadius: '50%' },
-  panelCard: { background: '#fff', borderRadius: 24, border: '1px solid rgba(5,11,20,0.08)', padding: '18px 20px' },
-  agendaCard: { minHeight: 100, marginBottom: 0, display: 'flex', flexDirection: 'column', background: 'linear-gradient(180deg, #ffffff 0%, #fbfcfd 100%)' },
+  panelCard: { background: '#fff', borderRadius: 14, border: '1px solid var(--ink-200, #E5E7EB)', padding: '18px 20px', boxShadow: '0 1px 2px rgba(11,15,20,0.04)' },
+  agendaCard: { minHeight: 100, marginBottom: 0, display: 'flex', flexDirection: 'column' },
   agendaHeaderBlock: { display: 'grid', gap: 8 },
-  agendaEyebrow: { fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#8a6a2f', marginBottom: 6 },
-  agendaDatePill: { display: 'inline-flex', alignItems: 'baseline', gap: 8, width: 'fit-content', padding: '8px 12px', borderRadius: 999, background: '#fbf4e4', color: '#8a6a2f', border: '1px solid rgba(184,146,79,0.14)' },
-  agendaDateDay: { fontSize: 24, lineHeight: 1, fontWeight: 800, color: '#111827' },
-  agendaDateMonth: { fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' },
+  agendaEyebrow: { fontSize: 11, fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--brand-500, #2F6FE0)', marginBottom: 6 },
+  agendaDatePill: { display: 'inline-flex', alignItems: 'baseline', gap: 8, width: 'fit-content', padding: '8px 12px', borderRadius: 999, background: 'var(--brand-50, #F4F8FE)', color: 'var(--brand-600, #1E4FA0)', border: '1px solid var(--brand-200, #BFDBFE)' },
+  agendaDateDay: { fontSize: 24, lineHeight: 1, fontWeight: 700, color: 'var(--fg-1, #111827)' },
+  agendaDateMonth: { fontSize: 11, fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase' },
   agendaListMonth: { maxHeight: 430, overflowY: 'auto', paddingRight: 4 },
   panelHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, marginBottom: 14, flexWrap: 'wrap' },
-  panelTitle: { fontSize: 14, fontWeight: 800, textTransform: 'capitalize' },
+  panelTitle: { fontSize: 13, fontWeight: 600, textTransform: 'capitalize', color: 'var(--fg-1, #111827)' },
   verticalList: { display: 'flex', flexDirection: 'column', gap: 10 },
-  agendaTimelineCard: { width: '100%', display: 'grid', gridTemplateColumns: '12px 64px 1fr', gap: 12, alignItems: 'start', border: '1px solid rgba(5,11,20,0.08)', borderRadius: 18, background: '#ffffff', padding: '14px 16px', cursor: 'pointer', boxShadow: '0 10px 20px rgba(5,11,20,0.04)' },
+  agendaTimelineCard: { width: '100%', display: 'grid', gridTemplateColumns: '12px 64px 1fr', gap: 12, alignItems: 'start', border: '1px solid var(--ink-200, #E5E7EB)', borderRadius: 14, background: '#ffffff', padding: '14px 16px', cursor: 'pointer', boxShadow: '0 1px 4px rgba(11,15,20,0.06)' },
   agendaTimelineRail: { position: 'relative', width: 12, alignSelf: 'stretch' },
-  agendaTimelineDot: { width: 12, height: 12, borderRadius: '50%', marginTop: 6, boxShadow: '0 0 0 4px rgba(184,146,79,0.14)' },
+  agendaTimelineDot: { width: 12, height: 12, borderRadius: '50%', marginTop: 6, boxShadow: '0 0 0 4px rgba(47,111,224,0.12)' },
   agendaTimelineTimeBlock: { paddingTop: 2, textAlign: 'left' },
-  agendaTimelineTime: { fontSize: 18, fontWeight: 800, letterSpacing: '-0.03em', color: '#111827' },
-  agendaTimelineDuration: { fontSize: 11, color: '#94a3b8', marginTop: 3 },
+  agendaTimelineTime: { fontSize: 17, fontWeight: 700, letterSpacing: '-0.02em', color: 'var(--fg-1, #111827)', fontFamily: 'var(--font-mono)' },
+  agendaTimelineDuration: { fontSize: 11, color: 'var(--fg-3, #6B7280)', marginTop: 3 },
   agendaTimelineContent: { minWidth: 0, textAlign: 'left' },
   agendaTimelineTop: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 4, flexWrap: 'wrap' },
-  agendaTimelineDescription: { marginTop: 8, fontSize: 12, lineHeight: 1.6, color: '#475569' },
-  eventCard: { width: '100%', display: 'flex', gap: 12, alignItems: 'flex-start', border: '1px solid rgba(5,11,20,0.08)', borderRadius: 18, background: '#fbfcfd', padding: '14px 16px', cursor: 'pointer' },
-  eventCardHistory: { borderLeft: '3px solid #f59e0b' },
+  agendaTimelineDescription: { marginTop: 8, fontSize: 12, lineHeight: 1.6, color: 'var(--fg-2, #374151)' },
+  eventCard: { width: '100%', display: 'flex', gap: 12, alignItems: 'flex-start', border: '1px solid var(--ink-200, #E5E7EB)', borderRadius: 14, background: 'var(--bg-subtle, #FAFBFC)', padding: '14px 16px', cursor: 'pointer' },
+  eventCardHistory: { borderLeft: '3px solid var(--brand-300, #93C5FD)' },
   eventBar: { width: 3, minHeight: 44, borderRadius: 3, flexShrink: 0 },
   eventTimeCol: { width: 56, textAlign: 'center', flexShrink: 0 },
-  eventTime: { fontSize: 13, fontWeight: 800, color: '#0f172a' },
-  eventDuration: { fontSize: 11, color: '#94a3b8', marginTop: 2 },
-  eventTitle: { fontSize: 14, fontWeight: 700, color: '#0f172a' },
-  eventSub: { fontSize: 12, color: '#64748b', marginTop: 2 },
+  eventTime: { fontSize: 13, fontWeight: 600, color: 'var(--fg-1, #111827)', fontFamily: 'var(--font-mono)' },
+  eventDuration: { fontSize: 11, color: 'var(--fg-3, #6B7280)', marginTop: 2 },
+  eventTitle: { fontSize: 14, fontWeight: 600, color: 'var(--fg-1, #111827)' },
+  eventSub: { fontSize: 12, color: 'var(--fg-3, #6B7280)', marginTop: 2 },
   eventMetaRow: { display: 'flex', gap: 6, alignItems: 'center', marginTop: 8, flexWrap: 'wrap' },
-  metaPill: { fontSize: 10, fontWeight: 700, color: '#8a6a2f', background: '#fbf4e4', borderRadius: 999, padding: '3px 8px' },
-  editedPill: { fontSize: 10, fontWeight: 700, color: '#d97706', background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 999, padding: '2px 7px' },
-  notificationRow: { display: 'flex', gap: 6, marginTop: 8, fontSize: 12 },
-  compactRow: { width: '100%', display: 'flex', alignItems: 'center', gap: 12, border: '1px solid rgba(5,11,20,0.08)', borderRadius: 14, background: '#fbfcfd', padding: '10px 14px', cursor: 'pointer' },
-  compactTime: { width: 42, fontSize: 12, fontWeight: 800, color: '#0f172a', textAlign: 'center' },
+  metaPill: { fontSize: 10, fontWeight: 600, color: 'var(--brand-700, #0E335A)', background: 'var(--brand-50, #F4F8FE)', borderRadius: 6, padding: '3px 8px', border: '1px solid var(--brand-100, #DBEAFE)' },
+  editedPill: { fontSize: 10, fontWeight: 600, color: '#D97706', background: '#FFFBEB', border: '1px solid rgba(217,119,6,0.2)', borderRadius: 6, padding: '2px 7px' },
+  notificationRow: { display: 'flex', gap: 6, marginTop: 8, alignItems: 'center' },
+  compactRow: { width: '100%', display: 'flex', alignItems: 'center', gap: 12, border: '1px solid var(--ink-200, #E5E7EB)', borderRadius: 10, background: 'var(--bg-subtle, #FAFBFC)', padding: '10px 14px', cursor: 'pointer' },
+  compactTime: { width: 42, fontSize: 12, fontWeight: 500, color: 'var(--fg-1, #111827)', textAlign: 'center', fontFamily: 'var(--font-mono)' },
   groupHeader: { display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 },
-  groupTitle: { fontSize: 13, fontWeight: 800, color: '#0f172a', textTransform: 'capitalize' },
-  groupBadge: { background: '#fbf4e4', color: '#8a6a2f', borderRadius: 999, padding: '2px 8px', fontSize: 11, fontWeight: 700 },
-  emptyListCard: { background: '#fff', border: '1px dashed #dbe3ea', borderRadius: 18, padding: 18, color: '#94a3b8', fontSize: 13 },
+  groupTitle: { fontSize: 13, fontWeight: 600, color: 'var(--fg-1, #111827)', textTransform: 'capitalize' },
+  groupBadge: { background: 'var(--brand-50, #F4F8FE)', color: 'var(--brand-600, #1E4FA0)', borderRadius: 999, padding: '2px 8px', fontSize: 11, fontWeight: 600, border: '1px solid var(--brand-100, #DBEAFE)' },
+  emptyListCard: { background: '#fff', border: '1px dashed var(--ink-200, #E5E7EB)', borderRadius: 14, padding: 18, color: 'var(--fg-3, #6B7280)', fontSize: 13 },
   kanbanWrap: { display: 'flex', gap: 12, overflowX: 'auto', paddingBottom: 10 },
   kanbanColumn: { width: 220, flexShrink: 0 },
-  kanbanHeader: { background: '#fff', border: '1px solid rgba(5,11,20,0.08)', borderRadius: 16, textAlign: 'center', padding: '10px 8px', marginBottom: 8 },
-  kanbanHeaderToday: { background: '#050b14', borderColor: '#050b14' },
-  kanbanHeaderWeekday: { fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' },
+  kanbanHeader: { background: '#fff', border: '1px solid var(--ink-200, #E5E7EB)', borderRadius: 12, textAlign: 'center', padding: '10px 8px', marginBottom: 8 },
+  kanbanHeaderToday: { background: 'var(--brand-600, #1E4FA0)', borderColor: 'var(--brand-600, #1E4FA0)' },
+  kanbanHeaderWeekday: { fontSize: 11, fontWeight: 600, color: 'var(--fg-3, #6B7280)', textTransform: 'uppercase' },
   kanbanHeaderWeekdayToday: { color: 'rgba(255,255,255,.75)' },
-  kanbanHeaderDay: { fontSize: 24, fontWeight: 800, color: '#0f172a' },
+  kanbanHeaderDay: { fontSize: 22, fontWeight: 700, color: 'var(--fg-1, #111827)', fontFamily: 'var(--font-mono)' },
   kanbanHeaderDayToday: { color: '#fff' },
-  kanbanDropzone: { minHeight: 220, borderRadius: 16, background: '#f8fafb', padding: 8, border: '1px dashed #dbe4f0' },
-  emptyKanban: { color: '#94a3b8', fontSize: 12, textAlign: 'center', paddingTop: 20 },
-  kanbanCard: { background: '#fff', border: '1px solid', borderRadius: 14, padding: '10px 12px', marginBottom: 8, cursor: 'grab' },
-  kanbanTime: { fontSize: 11, fontWeight: 800, color: '#8a6a2f' },
-  kanbanTitle: { fontSize: 13, fontWeight: 700, color: '#0f172a', marginTop: 3 },
-  kanbanMeta: { fontSize: 11, color: '#64748b', marginTop: 4 },
-  overlay: { position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, .55)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, zIndex: 200 },
-  modal: { width: '100%', maxWidth: 760, maxHeight: '90vh', overflow: 'auto', background: '#fff', borderRadius: 24, boxShadow: '0 30px 60px rgba(0,0,0,.24)' },
-  modalMobile: { maxWidth: '100%', borderRadius: 20 },
-  modalHeader: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 22px', borderBottom: '1px solid #edf1f4' },
-  modalTitle: { fontSize: 18, fontWeight: 800, color: '#0f172a' },
-  closeButton: { border: 'none', background: 'transparent', fontSize: 28, lineHeight: 1, cursor: 'pointer', color: '#94a3b8' },
-  tabRow: { display: 'flex', gap: 4, padding: 12, background: '#f8fafb' },
-  modalTab: { border: 'none', background: 'transparent', padding: '8px 12px', borderRadius: 10, fontSize: 13, fontWeight: 700, color: '#64748b', cursor: 'pointer' },
-  modalTabActive: { background: '#fff', color: '#0f172a', boxShadow: '0 1px 3px rgba(0,0,0,.08)' },
+  kanbanDropzone: { minHeight: 220, borderRadius: 12, background: 'var(--bg-subtle, #FAFBFC)', padding: 8, border: '1px dashed var(--ink-200, #E5E7EB)' },
+  emptyKanban: { color: 'var(--fg-3, #6B7280)', fontSize: 12, textAlign: 'center', paddingTop: 20 },
+  kanbanCard: { background: '#fff', border: '1px solid', borderRadius: 10, padding: '10px 12px', marginBottom: 8, cursor: 'grab' },
+  kanbanTime: { fontSize: 11, fontWeight: 500, color: 'var(--brand-500, #2F6FE0)', fontFamily: 'var(--font-mono)' },
+  kanbanTitle: { fontSize: 13, fontWeight: 600, color: 'var(--fg-1, #111827)', marginTop: 3 },
+  kanbanMeta: { fontSize: 11, color: 'var(--fg-3, #6B7280)', marginTop: 4 },
+  overlay: { position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, .48)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, zIndex: 200 },
+  modal: { width: '100%', maxWidth: 760, maxHeight: '90vh', overflow: 'auto', background: '#fff', borderRadius: 20, boxShadow: '0 24px 48px rgba(11,15,20,.2)' },
+  modalMobile: { maxWidth: '100%', borderRadius: 16 },
+  modalHeader: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 22px', borderBottom: '1px solid var(--ink-100, #F3F4F6)' },
+  modalTitle: { fontSize: 17, fontWeight: 600, color: 'var(--fg-1, #111827)' },
+  closeButton: { border: 'none', background: 'transparent', fontSize: 24, lineHeight: 1, cursor: 'pointer', color: 'var(--fg-3, #6B7280)' },
+  tabRow: { display: 'flex', gap: 4, padding: 12, background: 'var(--bg-subtle, #FAFBFC)', borderBottom: '1px solid var(--ink-100, #F3F4F6)' },
+  modalTab: { border: 'none', background: 'transparent', padding: '8px 12px', borderRadius: 8, fontSize: 13, fontWeight: 500, color: 'var(--fg-3, #6B7280)', cursor: 'pointer' },
+  modalTabActive: { background: '#fff', color: 'var(--fg-1, #111827)', boxShadow: '0 1px 3px rgba(0,0,0,.08)' },
   modalBody: { padding: 22, display: 'flex', flexDirection: 'column', gap: 14 },
   formGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 },
   formGridMobile: { gridTemplateColumns: '1fr' },
-  label: { fontSize: 11, fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '.4px', marginBottom: 6 },
-  input: { width: '100%', border: '1px solid rgba(5,11,20,0.1)', borderRadius: 14, padding: '11px 13px', fontSize: 14, outline: 'none' },
-  notificationBlock: { border: '1px solid rgba(5,11,20,0.08)', borderRadius: 18, padding: 16, background: '#fafbfd' },
-  notificationTitle: { fontSize: 13, fontWeight: 800, color: '#0f172a', marginBottom: 10 },
-  toggleRow: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', fontSize: 13, color: '#374151' },
-  toggle: { width: 42, height: 24, border: 'none', borderRadius: 999, background: '#e2e8f0', position: 'relative', cursor: 'pointer' },
-  toggleOn: { background: '#050b14' },
+  label: { fontSize: 11, fontWeight: 600, color: 'var(--fg-3, #6B7280)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 6 },
+  input: { width: '100%', border: '1px solid var(--ink-200, #E5E7EB)', borderRadius: 10, padding: '11px 13px', fontSize: 14, outline: 'none', background: '#fff', color: 'var(--fg-1, #111827)' },
+  notificationBlock: { border: '1px solid var(--ink-100, #F3F4F6)', borderRadius: 12, padding: 16, background: 'var(--bg-subtle, #FAFBFC)' },
+  notificationTitle: { fontSize: 13, fontWeight: 600, color: 'var(--fg-1, #111827)', marginBottom: 10 },
+  toggleRow: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', fontSize: 13, color: 'var(--fg-2, #374151)' },
+  toggle: { width: 42, height: 24, border: 'none', borderRadius: 999, background: 'var(--ink-200, #E5E7EB)', position: 'relative', cursor: 'pointer' },
+  toggleOn: { background: 'var(--brand-500, #2F6FE0)' },
   toggleKnob: { position: 'absolute', top: 4, left: 4, width: 16, height: 16, borderRadius: '50%', background: '#fff', transition: 'all .15s ease' },
   toggleKnobOn: { left: 22 },
   modalFooter: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 22px 22px' },
-  toast: { position: 'fixed', right: 24, bottom: 24, background: '#0f172a', color: '#fff', borderRadius: 16, padding: '12px 16px', fontSize: 13, boxShadow: '0 18px 40px rgba(0,0,0,.25)', zIndex: 220 },
-  emptyState: { border: '1px dashed #dbe3ea', borderRadius: 18, padding: 24, textAlign: 'center', color: '#94a3b8', fontSize: 13 },
+  toast: { position: 'fixed', right: 24, bottom: 24, background: 'var(--brand-900, #04101F)', color: '#fff', borderRadius: 12, padding: '12px 16px', fontSize: 13, boxShadow: '0 12px 32px rgba(11,15,20,.28)', zIndex: 220 },
+  emptyState: { border: '1px dashed var(--ink-200, #E5E7EB)', borderRadius: 14, padding: 24, textAlign: 'center', color: 'var(--fg-3, #6B7280)', fontSize: 13 },
 }
