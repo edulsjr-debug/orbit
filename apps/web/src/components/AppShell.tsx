@@ -15,8 +15,6 @@ import {
   LogOut,
   ChevronDown,
   Watch,
-  Menu,
-  X,
 } from 'lucide-react'
 
 type User = { id: string; name: string; email: string }
@@ -127,7 +125,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const [bellOpen, setBellOpen] = useState(false)
   const [chipOpen, setChipOpen] = useState(false)
-  const [sidebarOpen, setSidebarOpen] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
   const [snoozed, setSnoozed] = useState<Record<string, number>>({})
   const [sessionStartedAt] = useState(() => Date.now())
@@ -142,10 +139,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     setSnoozed(readSnoozed())
   }, [])
-
-  useEffect(() => {
-    if (isMobile) setSidebarOpen(false)
-  }, [pathname, isMobile])
 
   const { data: user } = useSWR<User>('/auth/me', fetcher)
 
@@ -215,11 +208,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     router.push(routeForNotification(notification))
   }
 
-  const showSidebar = isMobile ? sidebarOpen : true
-
   return (
     <div style={S.page}>
-      {isMobile && sidebarOpen && <div onClick={() => setSidebarOpen(false)} style={S.overlay} />}
       {(bellOpen || chipOpen) && (
         <div
           style={{ position: 'fixed', inset: 0, zIndex: 99 }}
@@ -227,33 +217,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         />
       )}
 
-      {showSidebar && (
-        <aside
-          style={{
-            ...S.sidebar,
-            ...(isMobile
-              ? {
-                  position: 'fixed',
-                  top: 16,
-                  left: 16,
-                  bottom: 16,
-                  zIndex: 50,
-                  maxWidth: 300,
-                  transform: sidebarOpen ? 'translateX(0)' : 'translateX(-115%)',
-                  transition: 'transform 0.25s ease',
-                }
-              : {}),
-          }}
-        >
+      {!isMobile && (
+        <aside style={S.sidebar}>
           <div style={S.sidebarTop}>
             <div style={S.logoRow}>
               <OrbitMark size={32} />
               <span style={S.logoName}>Orbit</span>
-              {isMobile && (
-                <button onClick={() => setSidebarOpen(false)} style={S.closeButton} aria-label="Fechar menu">
-                  <X size={18} strokeWidth={2} />
-                </button>
-              )}
             </div>
           </div>
 
@@ -278,7 +247,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </nav>
 
           <div style={S.sidebarBottom}>
-            <button onClick={() => { setSidebarOpen(false); router.push('/config') }} style={S.watchLink}>
+            <button onClick={() => router.push('/config')} style={S.watchLink}>
               <Watch size={13} strokeWidth={1.75} />
               Ver no Apple Watch →
             </button>
@@ -334,11 +303,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
         <header style={S.topbar}>
           <div style={S.topbarLeft}>
-            {isMobile && (
-              <button onClick={() => setSidebarOpen(true)} style={S.menuButton} aria-label="Abrir menu">
-                <Menu size={20} strokeWidth={1.75} />
-              </button>
-            )}
             <div>
               <div style={S.topbarTitle}>
                 {NAV.find(n => pathname === n.href || pathname.startsWith(n.href + '/'))?.label ?? 'Orbit'}
@@ -428,8 +392,34 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
         </header>
 
-        <main style={S.content}>{children}</main>
+        <main style={{ ...S.content, ...(isMobile ? { paddingBottom: 80 } : {}) }}>{children}</main>
       </div>
+
+      {/* Bottom navigation — mobile only */}
+      {isMobile && (
+        <nav style={S.bottomNav}>
+          {NAV.map(({ href, label, Icon }) => {
+            const active = pathname === href || pathname.startsWith(href + '/')
+            return (
+              <button
+                key={href}
+                onClick={() => router.push(href)}
+                style={{ ...S.bottomNavItem, ...(active ? S.bottomNavItemActive : {}) }}
+              >
+                <div style={{ position: 'relative' }}>
+                  <Icon size={22} strokeWidth={1.75} />
+                  {href === '/notificacoes' && unreadCount > 0 && (
+                    <span style={S.bottomNavBadge}>{unreadCount > 9 ? '9+' : unreadCount}</span>
+                  )}
+                </div>
+                <span style={{ ...S.bottomNavLabel, ...(active ? { color: 'var(--brand-500, #2F6FE0)' } : {}) }}>
+                  {label}
+                </span>
+              </button>
+            )
+          })}
+        </nav>
+      )}
     </div>
   )
 }
@@ -547,6 +537,60 @@ const S: Record<string, React.CSSProperties> = {
   content: {
     flex: 1,
     padding: 'clamp(20px, 3vw, 32px)',
+  },
+  bottomNav: {
+    position: 'fixed',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    zIndex: 100,
+    height: 64,
+    background: 'rgba(255,255,255,0.92)',
+    backdropFilter: 'blur(20px)',
+    borderTop: '1px solid var(--ink-150, #EEF0F3)',
+    display: 'flex',
+    alignItems: 'stretch',
+    paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+  },
+  bottomNavItem: {
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 3,
+    border: 'none',
+    background: 'transparent',
+    cursor: 'pointer',
+    color: 'var(--fg-3, #6B7280)',
+    padding: '4px 0',
+    position: 'relative',
+  },
+  bottomNavItemActive: {
+    color: 'var(--brand-500, #2F6FE0)',
+  },
+  bottomNavLabel: {
+    fontSize: 10,
+    fontWeight: 600,
+    color: 'var(--fg-3, #6B7280)',
+    letterSpacing: '0.01em',
+  },
+  bottomNavBadge: {
+    position: 'absolute',
+    top: -4,
+    right: -6,
+    background: '#EF4444',
+    color: '#fff',
+    fontSize: 9,
+    fontWeight: 700,
+    minWidth: 16,
+    height: 16,
+    borderRadius: 8,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    border: '2px solid #fff',
+    padding: '0 2px',
   },
   // Toast
   toastStack: {
