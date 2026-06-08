@@ -101,7 +101,7 @@ export async function notificationRoutes(app: FastifyInstance) {
       await sendPushNotification(uid, {
         title: 'Teste Orbit',
         body: 'Push funcionando corretamente!',
-        url: '/dashboard/notificacoes',
+        url: '/notificacoes',
         tag: 'orbit-push-test',
       })
       return { ok: true, message: 'Push enviado' }

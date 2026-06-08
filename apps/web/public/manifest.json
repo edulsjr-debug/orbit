@@ -4,8 +4,8 @@
   "description": "Compromissos, tarefas e projetos com notificações em tempo real",
   "start_url": "/inicio",
   "display": "standalone",
-  "background_color": "#050B14",
-  "theme_color": "#050B14",
+  "background_color": "#2F6FE0",
+  "theme_color": "#2F6FE0",
   "orientation": "portrait-primary",
   "icons": [
     {

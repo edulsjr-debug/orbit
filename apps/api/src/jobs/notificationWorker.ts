@@ -20,7 +20,7 @@ function buildEventNotificationContent(event: {
   return {
     title: event.title,
     body,
-    url: '/dashboard/compromissos',
+    url: '/compromissos',
     tag: `event-${event.id}`,
     emailSubject: `Lembrete: ${event.title}`,
   }
